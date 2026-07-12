@@ -1,6 +1,22 @@
 import User from "../model/user.model.js";
 import bcrpyt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { errorHandler } from "../utils/error.js";
+
+// Signs a JWT for the given user and sets it as an HttpOnly cookie.
+const setAuthCookie = (res, user) => {
+  const token = jwt.sign(
+    { _id: user._id, id: user.id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+  res.cookie("access_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  });
+};
 
 export const signup = async (req, res, next) => {
   const { name, password, nic, dob, address, phoneNumber, email, role, id } =
@@ -127,7 +143,31 @@ export const login = async (req, res, next) => {
       return next(errorHandler(400, "User can not found."));
     }
     const { password: pass, ...rest } = user._doc;
+    setAuthCookie(res, user);
     res.status(200).json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Clears the auth cookie to log the user out.
+export const logout = (req, res) => {
+  res.clearCookie("access_token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  res.status(200).json({ success: true, message: "Logged out successfully." });
+};
+
+// Returns the currently authenticated user (used to validate the session).
+export const getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) {
+      return next(errorHandler(404, "User not found."));
+    }
+    res.status(200).json(user);
   } catch (error) {
     next(error);
   }

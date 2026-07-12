@@ -34,7 +34,7 @@ export const DriverDashboard = () => {
     blockFines: 0,
   });
   const [pId, setPId] = useState("");
-  const { authUser } = useContext(AuthContext);
+  const { authUser, setAuthUser } = useContext(AuthContext);
 
   console.log(authUser);
 
@@ -188,8 +188,17 @@ export const DriverDashboard = () => {
                 </Link>
 
                 <div
-                  onClick={() => {
-                    localStorage.removeItem("token");
+                  onClick={async () => {
+                    try {
+                      await fetch("/api/v1/auth/logout", {
+                        method: "POST",
+                        credentials: "include",
+                      });
+                    } catch (error) {
+                      console.log("Logout error:", error);
+                    }
+                    localStorage.removeItem("user");
+                    setAuthUser(null);
                     navigate("/");
                   }}
                   className="cursor-pointer"

@@ -39,7 +39,7 @@ export const OfficerDashboard = () => {
   });
   const [recentActivities, setRecentActivities] = useState([]);
   const [pId, setPId] = useState("");
-  const { authUser } = useContext(AuthContext);
+  const { authUser, setAuthUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -298,8 +298,17 @@ export const OfficerDashboard = () => {
 
                 {/* Logout */}
                 <div
-                  onClick={() => {
-                    localStorage.removeItem("token");
+                  onClick={async () => {
+                    try {
+                      await fetch("/api/v1/auth/logout", {
+                        method: "POST",
+                        credentials: "include",
+                      });
+                    } catch (error) {
+                      console.log("Logout error:", error);
+                    }
+                    localStorage.removeItem("user");
+                    setAuthUser(null);
                     navigate("/");
                   }}
                   className="cursor-pointer"

@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import authRoutes from "./routes/auth.route.js";
 import userRoutes from "./routes/user.route.js";
 import vehicleRoutes from "./routes/vehicle.route.js";
@@ -23,6 +25,14 @@ import { checkFinesAndSendReminder } from "./controllers/email.controller.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
+
+// Auth cannot work without a signing secret — fail fast so it is never silently missing.
+if (!process.env.JWT_SECRET) {
+  console.error(
+    "FATAL: JWT_SECRET is not set. Add JWT_SECRET to backend/.env before starting the server."
+  );
+  process.exit(1);
+}
 
 const connectDB = async () => {
   try {
@@ -50,6 +60,13 @@ cron.schedule("0 9 * * *", async () => {
 //const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 //routes
 app.use("/api/v1/auth", authRoutes);

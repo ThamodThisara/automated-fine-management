@@ -15,6 +15,7 @@ import { FooterPage } from "./components/FooterPage";
 import { Header } from "./components/Header";
 import Success from "./pages/Success";
 import { About } from "./pages/About";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -26,10 +27,31 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/login-officer" element={<LoginOfficer />} />
         <Route path="/login-driver" element={<LoginDriver />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]} redirectTo="/login">
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/payment/success" element={<Success />} />
-        <Route path="/officerDashboard" element={<OfficerDashboard />} />
-        <Route path="/driverDashboard" element={<DriverDashboard />} />
+        <Route
+          path="/officerDashboard"
+          element={
+            <ProtectedRoute allowedRoles={["officer"]} redirectTo="/login-officer">
+              <OfficerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/driverDashboard"
+          element={
+            <ProtectedRoute allowedRoles={["driver"]} redirectTo="/login-driver">
+              <DriverDashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/payment" element={<Payment />} />
         <Route path="/search" element={<About />} />
         <Route path="/contact" element={<Contact />} />

@@ -6,12 +6,14 @@ import {
   addActivityOfficer,
   getRecentActivitiesOfficer,
 } from "../controllers/activity.controller.js";
+import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-router.post("/add", addActivity);
-router.get("/recent/:aId", getRecentActivities);
-router.post("/addOfficer", addActivityOfficer);
-router.get("/recentOfficer/:oId", getRecentActivitiesOfficer);
+// Activity logs are only available to authenticated users (dashboards).
+router.post("/add", verifyToken, addActivity);
+router.get("/recent/:aId", verifyToken, getRecentActivities);
+router.post("/addOfficer", verifyToken, addActivityOfficer);
+router.get("/recentOfficer/:oId", verifyToken, getRecentActivitiesOfficer);
 
 export default router;
