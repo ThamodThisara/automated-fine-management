@@ -15,6 +15,9 @@ node_modules
 .env.*
 !.env.example
 
+# Test coverage output
+coverage
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,37 +1,68 @@
-import { Button, Label, TextInput } from "flowbite-react";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Alert, Button, Label, TextInput } from "flowbite-react";
+import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 
 export const Payment = () => {
-  const [fineId, setFineId] = useState(null);
-  const navigate = useNavigate();
+  const [fineId, setFineId] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const makepayment = async (fineId) => {
-    await fetch(`/api/v1/fine/getfinebyobjectid/${fineId}`)
-      .then((res) => res.json())
-      .then(async (data) => {
-        console.log(data);
+    setError(null);
 
-        const stripe = await loadStripe(
-          import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+    if (!fineId) {
+      setError("Please enter a Payment ID.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // 1. Fetch the fine. The backend returns 403 for fines that are already
+      //    paid or blocked (overdue), and 404 if the ID does not exist.
+      const res = await fetch(`/api/v1/fine/getfinebyobjectid/${fineId}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(
+          data.message ||
+            "This fine cannot be processed for payment. Overdue (blocked) fines must be settled at the police station."
         );
-        const response = await fetch("/api/pay/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data }),
-        });
+        return;
+      }
 
-        const session = await response.json();
-        const result = await stripe.redirectToCheckout({
-          sessionId: session.id,
-        });
-        if (result.error) {
-          console.error("Error redirecting to checkout: ", result.error);
-        } else {
-          navigate("/");
-        }
+      // 2. Create the Stripe checkout session for the (payable) fine.
+      const stripe = await loadStripe(
+        import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+      );
+      const response = await fetch("/api/pay/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data }),
       });
+      const session = await response.json();
+
+      if (!response.ok || !session.id) {
+        setError(
+          session.message ||
+            "Unable to start the payment session. Please try again."
+        );
+        return;
+      }
+
+      // 3. Redirect to Stripe's hosted checkout (leaves this page on success).
+      const result = await stripe.redirectToCheckout({
+        sessionId: session.id,
+      });
+      if (result.error) {
+        setError(result.error.message || "Error redirecting to checkout.");
+      }
+    } catch (err) {
+      console.error("Payment error:", err);
+      setError("Something went wrong while processing the payment.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -113,12 +144,20 @@ export const Payment = () => {
           </p>
         </div>
 
+        {/* Error message */}
+        {error && (
+          <Alert color="failure" className="mb-4">
+            <span className="font-medium">{error}</span>
+          </Alert>
+        )}
+
         {/* Submit Button */}
         <div className="mt-8">
           <Button
             type="button"
+            disabled={loading}
             onClick={() => makepayment(fineId)}
-            className="w-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center"
+            className="w-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center disabled:opacity-60"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -134,7 +173,7 @@ export const Payment = () => {
                 d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
               />
             </svg>
-            Process Payment
+            {loading ? "Processing..." : "Process Payment"}
           </Button>
         </div>
 

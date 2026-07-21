@@ -13,6 +13,14 @@ export const checkout = async (req, res, next) => {
   try {
     const { data } = req.body;
 
+    // Guard against malformed/blocked-fine payloads so a bad request returns a clear
+    // 400 instead of crashing on undefined fields.
+    if (!data || !data._id || !data.charge || !data.email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid fine data for payment." });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       customer_email: data.email, // Attach user's email
@@ -20,7 +28,7 @@ export const checkout = async (req, res, next) => {
         driverId: data.dId,
         driverName: data.dName,
         vehicleNo: data.vNo,
-        issuedAt: data.issueDate.$date,
+        issuedAt: String(data.issueDate ?? ""), // issueDate is serialized as an ISO string
         place: data.place,
         violation: data.violation,
         officerId: data.pId,
@@ -34,7 +42,9 @@ export const checkout = async (req, res, next) => {
             currency: "lkr",
             product_data: {
               name: `Traffic Violation: ${data.violation}`,
-              description: `Issued by ${data.pName} at ${data.place} on ${data.issueDate.$date}`,
+              description: `Issued by ${data.pName} at ${data.place} on ${String(
+                data.issueDate ?? ""
+              )}`,
             },
             unit_amount: parseInt(data.charge.replace(/\D+/g, "")) * 100, // Rupees -> smallest currency unit (cents)
           },
