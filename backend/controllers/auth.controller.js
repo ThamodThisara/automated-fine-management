@@ -51,7 +51,7 @@ export const signup = async (req, res, next) => {
     try {
       const { pStation, profilePicture } = req.body;
       if (!pStation || pStation == "") {
-        next(errorHandler(400, "All fields are required"));
+        return next(errorHandler(400, "All fields are required"));
       }
       const createUser = User({
         name,
@@ -75,7 +75,7 @@ export const signup = async (req, res, next) => {
     try {
       const { pStation, profilePicture } = req.body;
       if (!pStation || pStation == "") {
-        next(errorHandler(400, "All fields are required"));
+        return next(errorHandler(400, "All fields are required"));
       }
 
       const createUser = User({
@@ -100,7 +100,7 @@ export const signup = async (req, res, next) => {
     try {
       const { vType, model, profilePicture } = req.body;
       if (!vType || !model || vType == "" || model == "") {
-        next(errorHandler(400, "All fields are required"));
+        return next(errorHandler(400, "All fields are required"));
       }
       const createUser = User({
         name,

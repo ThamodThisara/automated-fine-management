@@ -20,7 +20,7 @@ export const getRecentActivities = async (req, res, next) => {
     if (activities) {
       res.status(200).json(activities);
     } else {
-      return next(400, "Activities not found");
+      return next(errorHandler(400, "Activities not found"));
     }
   } catch (error) {
     next(error);
@@ -46,7 +46,7 @@ export const getRecentActivitiesOfficer = async (req, res, next) => {
     if (activities) {
       res.status(200).json(activities);
     } else {
-      return next(400, "Activities not found");
+      return next(errorHandler(400, "Activities not found"));
     }
   } catch (error) {
     next(error);

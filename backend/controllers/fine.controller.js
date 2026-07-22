@@ -189,7 +189,7 @@ export const getAllFines = async (req, res, next) => {
     if (fines) {
       res.status(200).json(fines);
     } else {
-      return next(400, "User not found");
+      return next(errorHandler(400, "User not found"));
     }
   } catch (error) {
     next(error);
@@ -205,7 +205,7 @@ export const getFine = async (req, res, next) => {
     if (fine) {
       res.status(200).json(fine);
     } else {
-      return next(404, "Fine not found");
+      return next(errorHandler(404, "Fine not found"));
     }
   } catch (error) {
     next(error);
@@ -221,7 +221,7 @@ export const getFineOfficer = async (req, res, next) => {
     if (fineOfficer) {
       res.status(200).json(fineOfficer);
     } else {
-      return next(404, "Fine not found");
+      return next(errorHandler(404, "Fine not found"));
     }
   } catch (error) {
     next(error);
@@ -251,7 +251,7 @@ export const getFineByOid = async (req, res, next) => {
     const fine = await Fine.findById(fineId);
 
     if (!fine) {
-      return next(404, "Fine not found");
+      return next(errorHandler(404, "Fine not found"));
     }
 
     if (!fine.block && !fine.state) {
@@ -271,14 +271,14 @@ export const getBlockFines = async (req, res, next) => {
     const fines = await Fine.find();
 
     if (!fines) {
-      return next(404, "Fine not found");
+      return next(errorHandler(404, "Fine not found"));
     }
     const blockedFines = fines.filter((fine) => fine.block === true);
 
     if (blockedFines.length > 0) {
       return res.status(200).json(blockedFines);
     } else {
-      return res.status(404).json({ message: "No blocked fines found" });
+      return next(errorHandler(404, "No blocked fines found"));
     }
   } catch (error) {
     next(error);
@@ -314,7 +314,7 @@ export const getBlockFine = async (req, res, next) => {
     if (fine) {
       res.status(200).json(fine);
     } else {
-      return next(404, "Rule not found");
+      return next(errorHandler(404, "Rule not found"));
     }
   } catch (error) {
     next(error);
@@ -330,7 +330,7 @@ export const getUnpaidFine = async (req, res, next) => {
     if (fine) {
       res.status(200).json(fine);
     } else {
-      return next(404, "Rule not found");
+      return next(errorHandler(404, "Rule not found"));
     }
   } catch (error) {
     next(error);
@@ -346,7 +346,7 @@ export const getblockdriverFine = async (req, res, next) => {
     if (fine) {
       res.status(200).json(fine);
     } else {
-      return next(404, "Rule not found");
+      return next(errorHandler(404, "Rule not found"));
     }
   } catch (error) {
     next(error);
@@ -436,7 +436,7 @@ export const getblockdriverFine = async (req, res, next) => {
 //   }
 // }
 
-export const generateFinePDF = async (req, res) => {
+export const generateFinePDF = async (req, res, next) => {
   try {
     const { date, pId, dId, vNo, pStation } = req.query;
 
@@ -458,9 +458,9 @@ export const generateFinePDF = async (req, res) => {
     const fines = await Fine.find(filter);
 
     if (fines.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No fines found with the specified filters" });
+      return next(
+        errorHandler(404, "No fines found with the specified filters")
+      );
     }
 
     // Create PDF with better margins
@@ -710,7 +710,6 @@ export const generateFinePDF = async (req, res) => {
 
     doc.end();
   } catch (error) {
-    console.error("Error generating PDF:", error);
-    res.status(500).json({ message: "Error generating PDF report" });
+    next(error);
   }
 };

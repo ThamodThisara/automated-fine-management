@@ -87,7 +87,7 @@ export const getUser = async (req, res, next) => {
       if (user) {
         res.status(200).json(user);
       } else {
-        return next(404, "User not found");
+        return next(errorHandler(404, "User not found"));
       }
     else {
       console.log("This user can't find.");
@@ -107,7 +107,7 @@ export const getOfficer = async (req, res, next) => {
       if (user) {
         res.status(200).json(user);
       } else {
-        return next(404, "User not found");
+        return next(errorHandler(404, "User not found"));
       }
     else {
       console.log("This user can't find.");
@@ -126,7 +126,7 @@ export const getAdmin = async (req, res, next) => {
       if (user) {
         res.status(200).json(user);
       } else {
-        return next(404, "User not found");
+        return next(errorHandler(404, "User not found"));
       }
     else {
       console.log("This user can't find.");
@@ -142,7 +142,7 @@ export const getAllOfficers = async (req, res, next) => {
     if (officers) {
       res.status(200).json(officers);
     } else {
-      return next(400, "User not found");
+      return next(errorHandler(400, "User not found"));
     }
   } catch (error) {
     next(error);
@@ -154,7 +154,7 @@ export const getAllAdmins = async (req, res, next) => {
     if (admins) {
       res.status(200).json(admins);
     } else {
-      return next(400, "User not found");
+      return next(errorHandler(400, "User not found"));
     }
   } catch (error) {
     next(error);
@@ -167,7 +167,7 @@ export const getAllDrivers = async (req, res, next) => {
     if (drivers) {
       res.status(200).json(drivers);
     } else {
-      return next(400, "User not found");
+      return next(errorHandler(400, "User not found"));
     }
   } catch (error) {
     next(error);

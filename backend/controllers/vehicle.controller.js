@@ -101,7 +101,7 @@ export const getVehicle = async (req, res, next) => {
     if (vehicle) {
       res.status(200).json(vehicle);
     } else {
-      return next(404, "Vehicle not found");
+      return next(errorHandler(404, "Vehicle not found"));
     }
   } catch (error) {
     next(error);
@@ -114,7 +114,7 @@ export const getAllVehicles = async (req, res, next) => {
     if (vehicles) {
       res.status(200).json(vehicles);
     } else {
-      return next(400, "Vehicle not found");
+      return next(errorHandler(400, "Vehicle not found"));
     }
   } catch (error) {
     next(error);

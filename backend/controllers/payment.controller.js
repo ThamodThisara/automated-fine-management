@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import stripePackage from "stripe";
 import Fine from "../model/fine.model.js";
+import { errorHandler } from "../utils/error.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "../.env") });
@@ -16,9 +17,7 @@ export const checkout = async (req, res, next) => {
     // Guard against malformed/blocked-fine payloads so a bad request returns a clear
     // 400 instead of crashing on undefined fields.
     if (!data || !data._id || !data.charge || !data.email) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid fine data for payment." });
+      return next(errorHandler(400, "Invalid fine data for payment."));
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -64,7 +63,7 @@ export const checkout = async (req, res, next) => {
   }
 };
 
-export const updateSuccessPayment = async (req, res) => {
+export const updateSuccessPayment = async (req, res, next) => {
   try {
     const { sessionId } = req.body;
     // console.log(sessionId);
@@ -82,7 +81,6 @@ export const updateSuccessPayment = async (req, res) => {
     // res.json({ success: false, message: "Payment not completed" });
     // }
   } catch (error) {
-    // console.error("Error updating fine:", error);
-    res.status(500).json({ success: false, error: "Failed to update fine" });
+    next(error);
   }
 };

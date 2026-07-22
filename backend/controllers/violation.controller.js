@@ -36,7 +36,7 @@ export const getAllRule = async (req, res, next) => {
     if (rules) {
       res.status(200).json(rules);
     } else {
-      return next(400, "Rules not found.");
+      return next(errorHandler(400, "Rules not found."));
     }
   } catch (error) {
     next(error);
@@ -51,7 +51,7 @@ export const getRule = async (req, res, next) => {
     if (rule) {
       res.status(200).json(rule);
     } else {
-      return next(404, "Rule not found");
+      return next(errorHandler(404, "Rule not found"));
     }
   } catch (error) {
     next(error);
@@ -123,7 +123,7 @@ export const getRuleBySearch = async (req, res, next) => {
     }
     const rules = await Violation.find();
     if (!rules) {
-      return next(400, "Rules not found.");
+      return next(errorHandler(400, "Rules not found."));
     }
     const searcher = new FuzzySearch(rules, ["type"], {
       caseSensitive: false,

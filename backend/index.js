@@ -36,10 +36,7 @@ if (!process.env.JWT_SECRET) {
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGOURL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(process.env.MONGOURL);
     console.log("MongoDB Connected!");
   } catch (error) {
     console.error("MongoDB Connection Failed!", error);
