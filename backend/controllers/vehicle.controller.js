@@ -111,11 +111,7 @@ export const getVehicle = async (req, res, next) => {
 export const getAllVehicles = async (req, res, next) => {
   try {
     const vehicles = await Vehicle.find();
-    if (vehicles) {
-      res.status(200).json(vehicles);
-    } else {
-      return next(errorHandler(400, "Vehicle not found"));
-    }
+    res.status(200).json(vehicles);
   } catch (error) {
     next(error);
   }

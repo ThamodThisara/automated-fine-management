@@ -185,12 +185,7 @@ export const fineIssue = async (req, res, next) => {
 export const getAllFines = async (req, res, next) => {
   try {
     const fines = await Fine.find();
-
-    if (fines) {
-      res.status(200).json(fines);
-    } else {
-      return next(errorHandler(400, "User not found"));
-    }
+    res.status(200).json(fines);
   } catch (error) {
     next(error);
   }
@@ -202,7 +197,7 @@ export const getFine = async (req, res, next) => {
 
     const fine = await Fine.find({ dId: fineId });
 
-    if (fine) {
+    if (fine.length > 0) {
       res.status(200).json(fine);
     } else {
       return next(errorHandler(404, "Fine not found"));
@@ -218,7 +213,7 @@ export const getFineOfficer = async (req, res, next) => {
 
     const fineOfficer = await Fine.find({ pId: fineIdOfficer });
 
-    if (fineOfficer) {
+    if (fineOfficer.length > 0) {
       res.status(200).json(fineOfficer);
     } else {
       return next(errorHandler(404, "Fine not found"));
@@ -270,7 +265,7 @@ export const getBlockFines = async (req, res, next) => {
   try {
     const fines = await Fine.find();
 
-    if (!fines) {
+    if (fines.length === 0) {
       return next(errorHandler(404, "Fine not found"));
     }
     const blockedFines = fines.filter((fine) => fine.block === true);
@@ -327,7 +322,7 @@ export const getUnpaidFine = async (req, res, next) => {
 
     const fine = await Fine.find({ dId: fineId, state: false });
 
-    if (fine) {
+    if (fine.length > 0) {
       res.status(200).json(fine);
     } else {
       return next(errorHandler(404, "Rule not found"));
@@ -343,7 +338,7 @@ export const getblockdriverFine = async (req, res, next) => {
 
     const fine = await Fine.find({ dId: fineId, block: true });
 
-    if (fine) {
+    if (fine.length > 0) {
       res.status(200).json(fine);
     } else {
       return next(errorHandler(404, "Rule not found"));

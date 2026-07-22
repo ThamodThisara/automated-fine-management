@@ -139,11 +139,7 @@ export const getAdmin = async (req, res, next) => {
 export const getAllOfficers = async (req, res, next) => {
   try {
     const officers = await User.find({ role: "officer" });
-    if (officers) {
-      res.status(200).json(officers);
-    } else {
-      return next(errorHandler(400, "User not found"));
-    }
+    res.status(200).json(officers);
   } catch (error) {
     next(error);
   }
@@ -151,11 +147,7 @@ export const getAllOfficers = async (req, res, next) => {
 export const getAllAdmins = async (req, res, next) => {
   try {
     const admins = await User.find({ role: "admin" });
-    if (admins) {
-      res.status(200).json(admins);
-    } else {
-      return next(errorHandler(400, "User not found"));
-    }
+    res.status(200).json(admins);
   } catch (error) {
     next(error);
   }
@@ -164,11 +156,7 @@ export const getAllAdmins = async (req, res, next) => {
 export const getAllDrivers = async (req, res, next) => {
   try {
     const drivers = await User.find({ role: "driver" });
-    if (drivers) {
-      res.status(200).json(drivers);
-    } else {
-      return next(errorHandler(400, "User not found"));
-    }
+    res.status(200).json(drivers);
   } catch (error) {
     next(error);
   }

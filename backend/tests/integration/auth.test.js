@@ -8,8 +8,10 @@ import {
   seedUsers,
   SEED_CREDENTIALS,
 } from "../helpers/db.js";
+import { cookieFor } from "../helpers/auth.js";
 
 const app = buildTestApp();
+const adminCookie = cookieFor({ _id: "a1", id: "ADM-001", role: "admin" });
 
 beforeAll(async () => {
   await connectTestDB();
@@ -71,6 +73,32 @@ describe("POST /api/v1/auth/signup (admin-only)", () => {
       .send({ role: "admin", name: "Intruder" });
 
     expect(res.status).toBe(401);
+  });
+
+  // Regression test: the officer branch of signup used to call
+  // next(errorHandler(...)) without `return` when pStation was missing, then kept
+  // running — creating the user and calling res.json() again after a response had
+  // already been sent (pStation is schema-required for "officer", so the later
+  // .save() also failed, triggering a *second* next(error) call). That produced a
+  // double-response crash instead of a clean 400. Now it must stop at the first error.
+  it("rejects an officer signup missing pStation with a clean 400", async () => {
+    const res = await request(app)
+      .post("/api/v1/auth/signup")
+      .set("Cookie", adminCookie)
+      .send({
+        name: "New Officer",
+        password: "NewOfficer@123",
+        nic: "981234567V",
+        dob: "1998-04-04",
+        address: "12 Test Ave",
+        phoneNumber: "0712345678",
+        email: "newofficer-missing-pstation@test.local",
+        role: "officer",
+        id: "OFF-100",
+        // pStation intentionally omitted
+      });
+
+    expect(res.status).toBe(400);
   });
 });
 

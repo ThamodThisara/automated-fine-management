@@ -17,11 +17,7 @@ export const getRecentActivities = async (req, res, next) => {
     const activities = await Activity.find({ createdBy: req.params.aId })
       .sort({ createdAt: -1 })
       .limit(6);
-    if (activities) {
-      res.status(200).json(activities);
-    } else {
-      return next(errorHandler(400, "Activities not found"));
-    }
+    res.status(200).json(activities);
   } catch (error) {
     next(error);
   }
@@ -43,11 +39,7 @@ export const getRecentActivitiesOfficer = async (req, res, next) => {
     const activities = await Activity.find({ createdBy: req.params.oId })
       .sort({ createdAt: -1 })
       .limit(6);
-    if (activities) {
-      res.status(200).json(activities);
-    } else {
-      return next(errorHandler(400, "Activities not found"));
-    }
+    res.status(200).json(activities);
   } catch (error) {
     next(error);
   }
