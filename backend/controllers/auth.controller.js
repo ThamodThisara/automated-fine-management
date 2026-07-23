@@ -131,10 +131,15 @@ export const login = async (req, res, next) => {
     return next(errorHandler(400, "Fill all fields."));
   }
   try {
-    const user = await User.findOne({
-      ...(req.body.email && { email: req.body.email }),
-      ...(req.body.id && { id: req.body.id }),
-    });
+    let query = {};
+    if (req.body.email) {
+      query.email = req.body.email;
+    }
+    if (req.body.id) {
+      query.id = req.body.id;
+    }
+
+    const user = await User.findOne(query);
     if (!user) {
       return next(errorHandler(404, "User can not found."));
     }
