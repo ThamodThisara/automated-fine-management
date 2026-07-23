@@ -5,13 +5,15 @@ import PDFDocument from "pdfkit";
 
 export const fineIssue = async (req, res, next) => {
   const now = new Date();
-  const offsetDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-  const issueDate = offsetDate.toISOString().split("T")[0];
-  const time = now.toTimeString().split(" ")[0].slice(0, 5);
+  const issueDate = now.toLocaleDateString("en-CA");
+  const time = now.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
-  const calculatedExpireDate = new Date(offsetDate);
-  calculatedExpireDate.setDate(calculatedExpireDate.getDate() + 14);
-  const formattedExpireDate = calculatedExpireDate.toISOString().split("T")[0];
+  const expire = new Date(now);
+  expire.setDate(expire.getDate() + 14);
+  const formattedExpireDate = expire.toLocaleDateString("en-CA");
 
   const {
     _id,
