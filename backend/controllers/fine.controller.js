@@ -8,11 +8,10 @@ export const fineIssue = async (req, res, next) => {
   const offsetDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
   const issueDate = offsetDate.toISOString().split("T")[0];
   const time = now.toTimeString().split(" ")[0].slice(0, 5);
-  //now.setDate(now.getDate() + 14);
-  //const formattedExpireDate = now.toISOString().split("T")[0];
-  const yesterdayDate = new Date(offsetDate);
-  yesterdayDate.setDate(yesterdayDate.getDate() + 14);
-  const formattedExpireDate = yesterdayDate.toISOString().split("T")[0];
+
+  const calculatedExpireDate = new Date(offsetDate);
+  calculatedExpireDate.setDate(calculatedExpireDate.getDate() + 14);
+  const formattedExpireDate = calculatedExpireDate.toISOString().split("T")[0];
 
   const {
     _id,
