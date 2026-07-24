@@ -46,57 +46,70 @@ export const vehicleCreate = async (req, res, next) => {
 
 export const vehicleUpdate = async (req, res, next) => {
   try {
-    const vehicle = await Vehicle.findOne({ cNumber: req.params.cNumber });
+    const vehicle = await Vehicle.findOne({
+      cNumber: req.params.cNumber
+    });
 
-    if (req.body.no) {
-      if (vehicle.no !== req.body.no) {
-        const existNumber = await Vehicle.findOne({ no: req.body.no });
-        if (existNumber) {
-          return next(errorHandler(409, "Vehicle Number is already exist"));
-        }
+    if (!vehicle) {
+      return next(errorHandler(404, "Vehicle not found"));
+    }
+
+    if (req.body.no && req.body.no !== vehicle.no) {
+      const existNumber = await Vehicle.findOne({
+        no: req.body.no
+      });
+
+      if (existNumber) {
+        return next(
+            errorHandler(409, "Vehicle Number already exists")
+        );
       }
     }
 
-    if (req.body.cNumber) {
-      if (vehicle.cNumber !== req.body.cNumber) {
-        const existChassie = await Vehicle.findOne({
-          cNumber: req.body.cNumber,
-        });
-        if (existChassie) {
-          return next(
-            errorHandler(409, "Vehicle Chassie Number is already exist")
-          );
-        }
+    if (req.body.cNumber && req.body.cNumber !== vehicle.cNumber) {
+      const existChassis = await Vehicle.findOne({
+        cNumber: req.body.cNumber
+      });
+
+      if (existChassis) {
+        return next(
+            errorHandler(409, "Vehicle Chassis Number already exists")
+        );
       }
     }
 
     const updateVehicle = await Vehicle.findByIdAndUpdate(
-      vehicle._id,
-      {
-        $set: {
-          no: req.body.no,
-          cNumber: req.body.cNumber,
-          dateBrought: req.body.dateBrought,
-          name: req.body.name,
-          nic: req.body.nic,
-          phoneNumber: req.body.phoneNumber,
-          email: req.body.email,
-          model: req.body.model,
+        vehicle._id,
+        {
+          $set:{
+            ...req.body
+          }
+          // Without Spread
+          // ""
+          // $set: {
+          //   no: req.body.no,
+          //   cNumber: req.body.cNumber,
+          //   dateBrought: req.body.dateBrought,
+          //   name: req.body.name,
+          //   nic: req.body.nic,
+          //   phoneNumber: req.body.phoneNumber,
+          //   email: req.body.email,
+          //   model: req.body.model,
+          // }
+          // ""
         },
-      },
-      { new: true }
+        {new:true}
     );
-    res.status(200).json(updateVehicle);
-  } catch (error) {
+    return res.status(200).json(updateVehicle);
+  } catch(error){
     next(error);
   }
 };
 
 export const getVehicle = async (req, res, next) => {
   try {
-    const userId = req.params.cNumber;
-
-    const vehicle = await Vehicle.findOne({ cNumber: userId });
+    const chassisNumber = req.params.cNumber;
+    const vehicle = await Vehicle.findOne({ cNumber: chassisNumber });
 
     if (!vehicle) {
       return next(errorHandler(404, "Vehicle not found"));
@@ -111,7 +124,7 @@ export const getVehicle = async (req, res, next) => {
 export const getAllVehicles = async (req, res, next) => {
   try {
     const vehicles = await Vehicle.find();
-    res.status(200).json(vehicles);
+    return res.status(200).json(vehicles);
   } catch (error) {
     next(error);
   }
@@ -119,13 +132,12 @@ export const getAllVehicles = async (req, res, next) => {
 
 export const deleteVehicle = async (req, res, next) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id);
-    if (!vehicle) {
-      return next(errorHandler(404, "Vehicle not found"));
+    const vehicle = await Vehicle.findByIdAndDelete(req.params.id);
+    if(!vehicle){
+      return next(errorHandler(404,"Vehicle not found"));
     }
-    await Vehicle.findByIdAndDelete(req.params.id);
-    res.status(200).json("Vehicle delete is completed");
-  } catch (error) {
+    return res.status(200).json("Vehicle delete is completed" );
+  } catch(error){
     next(error);
   }
 };
