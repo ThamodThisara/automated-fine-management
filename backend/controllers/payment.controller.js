@@ -14,8 +14,6 @@ export const checkout = async (req, res, next) => {
   try {
     const { data } = req.body;
 
-    // Guard against malformed/blocked-fine payloads so a bad request returns a clear
-    // 400 instead of crashing on undefined fields.
     if (!data || !data._id || !data.charge || !data.email) {
       return next(errorHandler(400, "Invalid fine data for payment."));
     }
@@ -24,6 +22,7 @@ export const checkout = async (req, res, next) => {
       payment_method_types: ["card"],
       customer_email: data.email, // Attach user's email
       metadata: {
+        fineId: String(data._id), // Used by updateSuccessPayment to know which fine to mark paid
         driverId: data.dId,
         driverName: data.dName,
         vehicleNo: data.vNo,
@@ -51,7 +50,10 @@ export const checkout = async (req, res, next) => {
         },
       ],
       mode: "payment",
-      success_url: `http://localhost:5173/payment/success?session_id=${data._id}`,
+      // Stripe substitutes {CHECKOUT_SESSION_ID} with the real session id on redirect, so
+      // updateSuccessPayment can verify the payment with Stripe instead of trusting the client.
+      success_url:
+        "http://localhost:5173/payment/success?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: "http://localhost:5173/login/",
     });
 
@@ -66,20 +68,39 @@ export const checkout = async (req, res, next) => {
 export const updateSuccessPayment = async (req, res, next) => {
   try {
     const { sessionId } = req.body;
-    // console.log(sessionId);
 
-    // Retrieve payment session from Stripe
-    // const session = await stripe.checkout.sessions.retrieve(sessionId);
-    // const fineId = session.metadata.fineId;
+    if (!sessionId) {
+      return next(errorHandler(400, "Missing payment session id."));
+    }
 
-    // if (session.payment_status === "paid") {
-    // Update fine state in database
-    await Fine.findByIdAndUpdate(sessionId, { state: true });
+    // Ask Stripe directly whether this session was actually paid, rather than
+    // trusting the client's say-so.
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-    res.json({ success: true, message: "Fine updated successfully" });
-    // } else {
-    // res.json({ success: false, message: "Payment not completed" });
-    // }
+    if (session.payment_status !== "paid") {
+      return next(errorHandler(402, "Payment not completed."));
+    }
+
+    const fineId = session.metadata?.fineId;
+    if (!fineId) {
+      return next(errorHandler(400, "Payment session has no associated fine."));
+    }
+
+    const updatedFine = await Fine.findByIdAndUpdate(
+      fineId,
+      { state: true },
+      { new: true }
+    );
+
+    if (!updatedFine) {
+      return next(errorHandler(404, "Fine not found"));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Fine updated successfully",
+      fine: updatedFine,
+    });
   } catch (error) {
     next(error);
   }
