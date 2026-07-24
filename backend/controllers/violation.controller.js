@@ -14,7 +14,7 @@ export const ruleCreate = async (req, res, next) => {
     description == "" ||
     price == ""
   ) {
-    return next(errorHandler(400, "All fiels are required "));
+    return next(errorHandler(400, "All fields are required "));
   }
 
   try {
@@ -24,7 +24,7 @@ export const ruleCreate = async (req, res, next) => {
       price,
     });
     await addRule.save();
-    res.json("Violation rules and informations are added. ");
+    return res.status(201).json({message: "Violation rule and information added successfully"});
   } catch (error) {
     next(error);
   }
@@ -33,7 +33,7 @@ export const ruleCreate = async (req, res, next) => {
 export const getAllRule = async (req, res, next) => {
   try {
     const rules = await Violation.find();
-    res.status(200).json(rules);
+    return res.status(200).json(rules);
   } catch (error) {
     next(error);
   }
@@ -54,59 +54,66 @@ export const getRule = async (req, res, next) => {
   }
 };
 
-export const violaionUpdate = async (req, res, next) => {
-  try {
-    console.log(req.body);
-    
-    const violation = await Violation.findById(req.params._id);
-
-    if (req.body.type) {
-      if (violation.type !== req.body.type) {
-        const existType = await Violation.findOne({ type: req.body.type });
-        if (existType) {
-          return next(errorHandler(409, "Violation Type is already exist"));
-        }
-      }
-    }else{
-      req.body.type = violation.type;
-    }
-    if(!req.body.description){
-      req.body.description=violation.description
-    }
-
-    const updateViolation = await Violation.findByIdAndUpdate(
-      violation._id,
-      {
-        $set: {
-          type: req.body.type,
-          description: req.body.description,
-          price: req.body.price,
-        },
-      },
-      { new: true }
-    );
-    const newNotification = Notification({
-      fineId:violation._id,
-      type:req.body.type,
-      price:req.body.price,
-    });
-    await newNotification.save();
-
-    res.status(200).json(updateViolation);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const deleteViolation = async (req, res, next) => {
+export const violationUpdate = async (req, res, next) => {
   try {
     const violation = await Violation.findById(req.params._id);
     if (!violation) {
       return next(errorHandler(404, "Violation not found"));
     }
-    await Violation.findByIdAndDelete(req.params._id);
-    res.status(200).json("Violation delete is completed");
-  } catch (error) {
+
+    let type = req.body.type || violation.type;
+    let description = req.body.description || violation.description;
+    let price = req.body.price ?? violation.price;
+
+    if (type !== violation.type) {
+
+      const existType = await Violation.findOne({
+        type
+      });
+
+      if (existType) {
+        return next(
+            errorHandler(409, "Violation Type already exists")
+        );
+      }
+    }
+
+    const updateViolation = await Violation.findByIdAndUpdate(
+        violation._id,
+        {
+          $set:{
+            type,
+            description,
+            price
+          }
+        },
+        {
+          new:true
+        }
+    );
+
+    const newNotification = new Notification({
+      fineId: violation._id,
+      type,
+      price
+    });
+    await newNotification.save();
+    return res.status(200).json(updateViolation);
+  } catch(error){
+    next(error);
+  }
+};
+
+export const deleteViolation = async (req,res,next)=>{
+  try {
+    const violation = await Violation.findByIdAndDelete(req.params._id);
+    if(!violation){
+      return next(
+          errorHandler(404,"Violation not found")
+      );
+    }
+    return res.status(200).json("Violation delete is completed");
+  }catch(error){
     next(error);
   }
 };

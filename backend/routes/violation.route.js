@@ -3,7 +3,7 @@ import {
   ruleCreate,
   getAllRule,
   getRule,
-  violaionUpdate,
+  violationUpdate,
   deleteViolation,
   getRuleBySearch,
 } from "../controllers/violation.controller.js";
@@ -13,7 +13,7 @@ const router = express.Router();
 
 // Managing violation types: admins only.
 router.post("/add", verifyToken, verifyRole("admin"), ruleCreate);
-router.put("/update/:_id", verifyToken, verifyRole("admin"), violaionUpdate);
+router.put("/update/:_id", verifyToken, verifyRole("admin"), violationUpdate);
 router.delete("/delete/:_id", verifyToken, verifyRole("admin"), deleteViolation);
 
 // Authenticated reads (used when issuing fines and browsing rules).
