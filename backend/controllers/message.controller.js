@@ -19,11 +19,11 @@ export const getGroup = async (req, res, next) => {
       station: req.params.station,
     }).populate("message");
 
-    if (conversation) {
-      res.status(200).json(conversation);
-    } else {
+    if (!conversation) {
       return next(errorHandler(404, "Group not found"));
     }
+
+    return res.status(200).json(conversation);
   } catch (error) {
     next(error);
   }

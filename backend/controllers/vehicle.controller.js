@@ -98,11 +98,11 @@ export const getVehicle = async (req, res, next) => {
 
     const vehicle = await Vehicle.findOne({ cNumber: userId });
 
-    if (vehicle) {
-      res.status(200).json(vehicle);
-    } else {
+    if (!vehicle) {
       return next(errorHandler(404, "Vehicle not found"));
     }
+
+    return res.status(200).json(vehicle);
   } catch (error) {
     next(error);
   }
@@ -119,12 +119,12 @@ export const getAllVehicles = async (req, res, next) => {
 
 export const deleteVehicle = async (req, res, next) => {
   try {
-    const user = await Vehicle.findById(req.params.id);
-    if (!user) {
-      return next(errorHandler(404, "User not found"));
+    const vehicle = await Vehicle.findById(req.params.id);
+    if (!vehicle) {
+      return next(errorHandler(404, "Vehicle not found"));
     }
     await Vehicle.findByIdAndDelete(req.params.id);
-    res.status(200).json("User delete is completed");
+    res.status(200).json("Vehicle delete is completed");
   } catch (error) {
     next(error);
   }

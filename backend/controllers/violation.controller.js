@@ -42,13 +42,13 @@ export const getAllRule = async (req, res, next) => {
 export const getRule = async (req, res, next) => {
   try {
     const ruleId = req.params._id;
-    const rule = await Violation.findOne({ _id: ruleId });
+    const rule = await Violation.findById(ruleId);
 
-    if (rule) {
-      res.status(200).json(rule);
-    } else {
+    if (!rule) {
       return next(errorHandler(404, "Rule not found"));
     }
+
+    return res.status(200).json(rule);
   } catch (error) {
     next(error);
   }
@@ -58,7 +58,7 @@ export const violaionUpdate = async (req, res, next) => {
   try {
     console.log(req.body);
     
-    const violation = await Violation.findOne({ _id: req.params._id });
+    const violation = await Violation.findById(req.params._id);
 
     if (req.body.type) {
       if (violation.type !== req.body.type) {

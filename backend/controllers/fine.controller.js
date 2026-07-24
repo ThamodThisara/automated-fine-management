@@ -264,18 +264,13 @@ export const getFineByOid = async (req, res, next) => {
 
 export const getBlockFines = async (req, res, next) => {
   try {
-    const fines = await Fine.find();
+    const blockedFines = await Fine.find({ block: true });
 
-    if (fines.length === 0) {
-      return next(errorHandler(404, "Fine not found"));
-    }
-    const blockedFines = fines.filter((fine) => fine.block === true);
-
-    if (blockedFines.length > 0) {
-      return res.status(200).json(blockedFines);
-    } else {
+    if (blockedFines.length === 0) {
       return next(errorHandler(404, "No blocked fines found"));
     }
+
+    return res.status(200).json(blockedFines);
   } catch (error) {
     next(error);
   }
@@ -283,20 +278,24 @@ export const getBlockFines = async (req, res, next) => {
 
 export const fineUpdate = async (req, res, next) => {
   try {
-    const fine = await Fine.findOne({ _id: req.params._id });
+    const fineId = req.params._id;
 
     const updateFine = await Fine.findByIdAndUpdate(
-      fine._id,
-      {
-        $set: {
-          block: req.body.block,
-          state: req.body.state,
+        fineId,
+        {
+          $set: {
+            block: req.body.block,
+            state: req.body.state,
+          },
         },
-      },
-      { new: true }
+        { new: true }
     );
-    res.status(200).json(updateFine);
-    console.log("Success");
+
+    if (!updateFine) {
+      return next(errorHandler(404, "Fine not found"));
+    }
+
+    return res.status(200).json(updateFine);
   } catch (error) {
     next(error);
   }
@@ -305,17 +304,19 @@ export const fineUpdate = async (req, res, next) => {
 export const getBlockFine = async (req, res, next) => {
   try {
     const fineId = req.params._id;
-    const fine = await Fine.findOne({ _id: fineId });
 
-    if (fine) {
-      res.status(200).json(fine);
-    } else {
-      return next(errorHandler(404, "Rule not found"));
+    const fine = await Fine.findById(fineId);
+
+    if (!fine) {
+      return next(errorHandler(404, "Fine not found"));
     }
+
+    return res.status(200).json(fine);
   } catch (error) {
     next(error);
   }
 };
+
 
 export const getUnpaidFine = async (req, res, next) => {
   try {
@@ -326,7 +327,7 @@ export const getUnpaidFine = async (req, res, next) => {
     if (fine.length > 0) {
       res.status(200).json(fine);
     } else {
-      return next(errorHandler(404, "Rule not found"));
+      return next(errorHandler(404, "No unpaid fines found"));
     }
   } catch (error) {
     next(error);
@@ -337,13 +338,16 @@ export const getblockdriverFine = async (req, res, next) => {
   try {
     const fineId = req.params.dId;
 
-    const fine = await Fine.find({ dId: fineId, block: true });
+    const fines = await Fine.find({
+      dId: fineId,
+      block: true,
+    });
 
-    if (fine.length > 0) {
-      res.status(200).json(fine);
-    } else {
-      return next(errorHandler(404, "Rule not found"));
+    if (fines.length === 0) {
+      return next(errorHandler(404, "No blocked fines found"));
     }
+
+    return res.status(200).json(fines);
   } catch (error) {
     next(error);
   }
