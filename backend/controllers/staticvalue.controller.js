@@ -11,7 +11,7 @@ export const getValue = async (req, res, next) => {
     if (!value) {
       return next(errorHandler(404, "value not found"));
     }
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Value fetched successfully",
       data: value,
