@@ -120,17 +120,26 @@ export const deleteViolation = async (req,res,next)=>{
 
 export const getRuleBySearch = async (req, res, next) => {
   try {
-    const { searchText } = req.query;
-    if (!searchText || searchText.trim() === "") {
-      return next(errorHandler(400, "Search text is required"));
+    const {searchText} = req.query;
+    if(!searchText || searchText.trim()===""){
+      return next(
+          errorHandler(400,"Search text is required")
+      );
     }
+
     const rules = await Violation.find();
-    const searcher = new FuzzySearch(rules, ["type"], {
-      caseSensitive: false,
-    });
+
+    const searcher = new FuzzySearch(
+        rules,
+        ["type","description"],
+        {
+          caseSensitive:false
+        }
+    );
+
     const result = searcher.search(searchText);
-    res.json(result);
-  } catch (error) {
+    return res.status(200).json(result);
+  }catch(error){
     next(error);
   }
 };
