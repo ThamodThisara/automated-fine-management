@@ -444,11 +444,9 @@ export const generateFinePDF = async (req, res, next) => {
     if (date) {
       const selectedDate = new Date(date);
 
-      // Find fines where issueDate >= selectedDate
       filter.issueDate = {
         $gte: selectedDate,
       };
-      console.log(filter);
     }
     if (pId) filter.pId = pId;
     if (dId) filter.dId = dId;
@@ -459,257 +457,245 @@ export const generateFinePDF = async (req, res, next) => {
 
     if (fines.length === 0) {
       return next(
-        errorHandler(404, "No fines found with the specified filters")
+          errorHandler(404, "No fines found with the specified filters")
       );
     }
 
-    // Create PDF with better margins
+
     const doc = new PDFDocument({
       margin: 30,
       size: "A4",
       info: {
         Title: "Traffic Fine Report",
         Author: "Traffic Management System",
-        Creator: "Your Application Name",
-        Producer: "PDFKit",
       },
     });
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", "inline; filename=fines_report.pdf"); // Changed to inline for viewing
+    res.setHeader(
+        "Content-Type",
+        "application/pdf"
+    );
 
+    res.setHeader(
+        "Content-Disposition",
+        "inline; filename=fines_report.pdf"
+    );
     doc.pipe(res);
 
-    // Add header with logo and title
+    // Helper function
+    const getFineAmount = (charge) => {
+      if (!charge) return 0;
+
+      // "LKR 2500" -> 2500
+      const amount = charge.replace(/[^0-9.]/g, "");
+
+      return Number(amount) || 0;
+    };
+
+    // Draw Table Header Function
+
+    const drawTableHeader = () => {
+
+      const tableLeft = 50;
+      const tableTop = doc.y;
+
+      doc
+          .fillColor("#3498db")
+          .rect(tableLeft, tableTop, 500, 20)
+          .fill();
+
+
+      doc
+          .fillColor("#ffffff")
+          .font("Helvetica-Bold")
+          .fontSize(10)
+
+          .text("No.", tableLeft, tableTop + 5, {
+            width: 30
+          })
+
+          .text("Driver ID", tableLeft + 30, tableTop + 5, {
+            width: 80
+          })
+
+          .text("Driver Name", tableLeft + 110, tableTop + 5, {
+            width: 100
+          })
+
+          .text("Vehicle No", tableLeft + 210, tableTop + 5, {
+            width: 80
+          })
+
+          .text("Violation", tableLeft + 290, tableTop + 5, {
+            width: 120
+          })
+
+          .text("Amount", tableLeft + 410, tableTop + 5, {
+            width: 80,
+            align:"right"
+          });
+      return tableTop + 25;
+    };
+
+    // PDF Header
     doc
-      .fillColor("#2c3e50")
-      .fontSize(20)
-      .font("Helvetica-Bold")
-      .text("TRAFFIC FINE REPORT", { align: "center" });
-
-    doc.moveDown(0.5);
-
-    // Add decorative line
-    doc
-      .strokeColor("#3498db")
-      .lineWidth(2)
-      .moveTo(50, doc.y)
-      .lineTo(550, doc.y)
-      .stroke();
-
-    doc.moveDown(1);
-
-    // Filters section with colored background
-    doc
-      .fillColor("#ffffff")
-      .rect(50, doc.y, 500, 70)
-      .fill("#f8f9fa")
-      .stroke("#dee2e6");
-
-    doc
-      .fillColor("#2c3e50")
-      .fontSize(12)
-      .font("Helvetica-Bold")
-      .text("FILTERS APPLIED:", 60, doc.y + 10);
-
-    doc.fillColor("#7f8c8d").font("Helvetica");
-
-    let filterY = doc.y + 30;
-    if (date) {
-      doc.text(`• Date: ${new Date(date).toLocaleDateString()}`, 60, filterY);
-      filterY += 20;
-    }
-    if (pId) {
-      doc.text(`• Police ID: ${pId}`, 60, filterY);
-      filterY += 20;
-    }
-    if (dId) {
-      doc.text(`• Driver ID: ${dId}`, 60, filterY);
-      filterY += 20;
-    }
-    if (vNo) {
-      doc.text(`• Vehicle No: ${vNo}`, 60, filterY);
-      filterY += 20;
-    }
-
+        .fillColor("#2c3e50")
+        .fontSize(20)
+        .font("Helvetica-Bold")
+        .text(
+            "TRAFFIC FINE REPORT",
+            {
+              align:"center"
+            }
+        );
     doc.moveDown(2);
 
-    // Table header with colored background
-    const tableTop = doc.y;
-    const tableLeft = 50;
-    const colWidths = [30, 80, 100, 80, 120, 80];
+    let rowTop = drawTableHeader();
 
-    // Header background
-    doc
-      .fillColor("#ffffff")
-      .rect(tableLeft, tableTop, 500, 20)
-      .fill("#3498db")
-      .stroke("#3498db");
+    // Table Rows
+    fines.forEach((fine,index)=>{
 
-    // Header text
-    doc
-      .fillColor("#ffffff")
-      .font("Helvetica-Bold")
-      .fontSize(10)
-      .text("No.", tableLeft, tableTop + 5, { width: colWidths[0] })
-      .text("Driver ID", tableLeft + colWidths[0], tableTop + 5, {
-        width: colWidths[1],
-      })
-      .text(
-        "Driver Name",
-        tableLeft + colWidths[0] + colWidths[1],
-        tableTop + 5,
-        { width: colWidths[2] }
-      )
-      .text(
-        "Vehicle No",
-        tableLeft + colWidths[0] + colWidths[1] + colWidths[2],
-        tableTop + 5,
-        { width: colWidths[3] }
-      )
-      .text(
-        "Violation",
-        tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
-        tableTop + 5,
-        { width: colWidths[4] }
-      )
-      .text(
-        "Fine Amount",
-        tableLeft +
-          colWidths[0] +
-          colWidths[1] +
-          colWidths[2] +
-          colWidths[3] +
-          colWidths[4],
-        tableTop + 5,
-        { width: colWidths[5], align: "right" }
+
+      // Check page overflow
+      if(rowTop + 30 > doc.page.height - 60){
+        doc.addPage();
+        rowTop = drawTableHeader();
+      }
+
+      const amount = getFineAmount(
+          fine.charge
       );
 
-    // Table rows with alternating colors
-    let rowTop = tableTop + 20;
-    fines.forEach((fine, index) => {
-      // Alternate row colors
-      const rowColor = index % 2 === 0 ? "#ffffff" : "#f8f9fa";
+      const rowColor =
+          index % 2 === 0
+              ? "#ffffff"
+              : "#f8f9fa";
 
       doc
-        .fillColor(rowColor)
-        .rect(tableLeft, rowTop, 500, 20)
-        .fill()
-        .stroke("#dee2e6");
+          .fillColor(rowColor)
+          .rect(50,rowTop,500,25)
+          .fill();
 
       doc
-        .fillColor("#2c3e50")
-        .font("Helvetica")
-        .fontSize(10)
-        .text(`${index + 1}.`, tableLeft, rowTop + 5, { width: colWidths[0] })
-        .text(fine.dId, tableLeft + colWidths[0], rowTop + 5, {
-          width: colWidths[1],
-        })
-        .text(fine.dName, tableLeft + colWidths[0] + colWidths[1], rowTop + 5, {
-          width: colWidths[2],
-        })
-        .text(
-          fine.vNo,
-          tableLeft + colWidths[0] + colWidths[1] + colWidths[2],
-          rowTop + 5,
-          { width: colWidths[3] }
-        )
-        .text(
-          fine.violation,
-          tableLeft + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3],
-          rowTop + 5,
-          { width: colWidths[4] }
-        )
-        .fillColor("#e74c3c") // Red color for fine amount
-        .text(
-          `LKR ${parseFloat(fine.charge.split(" ")[1]).toFixed(2)}`,
-          tableLeft +
-            colWidths[0] +
-            colWidths[1] +
-            colWidths[2] +
-            colWidths[3] +
-            colWidths[4],
-          rowTop + 5,
-          { width: colWidths[5], align: "right" }
-        );
+          .fillColor("#2c3e50")
+          .font("Helvetica")
+          .fontSize(10)
 
+          .text(
+              `${index+1}`,
+              50,
+              rowTop+7,
+              {
+                width:30
+              }
+          )
+
+          .text(
+              fine.dId || "-",
+              80,
+              rowTop+7,
+              {
+                width:80
+              }
+          )
+
+          .text(
+              fine.dName || "-",
+              160,
+              rowTop+7,
+              {
+                width:100,
+                ellipsis:true
+              }
+          )
+
+          .text(
+              fine.vNo || "-",
+              260,
+              rowTop+7,
+              {
+                width:80
+              }
+          )
+
+          .text(
+              fine.violation || "-",
+              340,
+              rowTop+7,
+              {
+                width:120,
+                ellipsis:true
+              }
+          )
+
+          .fillColor("#e74c3c")
+          .text(
+              `LKR ${amount.toFixed(2)}`,
+              460,
+              rowTop+7,
+              {
+                width:80,
+                align:"right"
+              }
+          );
       rowTop += 30;
     });
 
-    // Add total summary with colored background
-    doc
-      .fillColor("#ffffff")
-      .rect(tableLeft, rowTop, 500, 30)
-      .fill("#2c3e50")
-      .stroke("#2c3e50");
+    // Total
+    if(rowTop + 40 > doc.page.height - 60){
+      doc.addPage();
+      rowTop = 50;
 
-    const totalFines = fines.reduce(
-      (sum, fine) => sum + parseFloat(fine.charge.split(" ")[1]),
-      0
+    }
+
+    const totalAmount = fines.reduce(
+        (sum,fine)=>
+            sum + getFineAmount(fine.charge),
+        0
     );
 
     doc
-      .fillColor("#ffffff")
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .text(`Total Fines: ${fines.length}`, tableLeft + 10, rowTop + 10)
-      .text(
-        `Total Amount: LKR ${totalFines.toFixed(2)}`,
-        tableLeft + 300,
-        rowTop + 10,
-        { width: 190, align: "right" }
-      );
+        .fillColor("#2c3e50")
+        .rect(50,rowTop,500,30)
+        .fill();
 
-    rowTop += 40;
-
-    // Add interactive elements (links)
-    {
-      /*doc
-      .fillColor("#3498db")
-      .text(
-        "For payment instructions, visit our website: ",
-        tableLeft,
-        rowTop,
-        { continued: true }
-      )
-      .text("www.trafficfines.gov.lk/payment", {
-        link: "https://www.trafficfines.gov.lk/payment",
-        underline: true,
-      });*/
-    }
-
-    rowTop += 20;
-
-    // Add QR code placeholder (you can replace with actual QR code generation)
-    //doc.fillColor("#000000").text("Scan to pay:", tableLeft, rowTop);
-
-    // This is a placeholder - you would use a QR code library here
-    // doc
-    // .rect(tableLeft, rowTop + 20, 80, 80)
-    // .fill("#ffffff")
-    // .stroke("#000000")
-    // .fillColor("#000000")
-    // .text("QR Code", tableLeft + 10, rowTop + 50);
-
-    // Add footer with page numbers
-    doc.page.margins.bottom = 0;
     doc
-      .fillColor("#7f8c8d")
-      .fontSize(10)
-      .text(
-        `Generated on ${new Date().toLocaleString()} • Page ${
-          doc.bufferedPageRange().count
-        } of ${doc.bufferedPageRange().count}`,
-        50,
-        doc.page.height - 30,
-        {
-          align: "center",
-          width: 500,
-        }
-      );
+        .fillColor("#ffffff")
+        .font("Helvetica-Bold")
+        .fontSize(12)
 
+        .text(
+            `Total Fines: ${fines.length}`,
+            60,
+            rowTop+10
+        )
+
+        .text(
+            `Total Amount: LKR ${totalAmount.toFixed(2)}`,
+            320,
+            rowTop+10,
+            {
+              width:220,
+              align:"right"
+            }
+        );
+
+    // Footer
+    doc
+        .fillColor("#7f8c8d")
+        .fontSize(10)
+        .text(
+            `Generated on ${new Date().toLocaleString()}`,
+            50,
+            doc.page.height - 40,
+            {
+              align:"center",
+              width:500
+            }
+        );
     doc.end();
-  } catch (error) {
+  } catch(error){
     next(error);
   }
 };
+
