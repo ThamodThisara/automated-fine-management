@@ -7,6 +7,12 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+  throw new Error(
+      "Email configuration missing. Please add EMAIL_USER and EMAIL_PASS to .env"
+  );
+}
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -15,17 +21,19 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendEmail = async (to, subject, text) => {
+export const sendEmail = async (to, subject, html) => {
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to,
       subject,
-      html: text,
+      html,
     });
-    console.log(`Email sent to ${to}`);
+
+    console.log(`Email sent successfully to ${to}`);
   } catch (error) {
     console.error("Error sending email:", error);
+    throw error;
   }
 };
 
@@ -159,12 +167,18 @@ export const checkFinesAndSendEmails = async () => {
   </html>
 `;
 
-      await sendEmail(fine.email, "Reminder: Unpaid Fine Payment", emailBody);
-      await sendEmail(
-        "moneeshakavindi66@gmail.com",
-        "Reminder: Unpaid Traffic Fine",
-        emailBody
-      );
+      try {
+        await sendEmail(fine.email, "Reminder: Unpaid Fine Payment", emailBody);
+        if (process.env.ADMIN_NOTIFICATION_EMAIL) {
+          await sendEmail(
+            process.env.ADMIN_NOTIFICATION_EMAIL,
+            "Reminder: Unpaid Traffic Fine",
+            emailBody
+          );
+        }
+      } catch (error) {
+        console.error(`Failed to send reminder email for fine ${fine._id}:`, error);
+      }
     }
   } catch (error) {
     console.error("Error fetching fines:", error);
@@ -208,7 +222,7 @@ export const checkFinesAndSendReminder = async () => {
       state: false, // Only unpaid fines
     });
 
-    fines.forEach(async (fine) => {
+    for (const fine of fines) {
       const issueDateNew = new Date(fine.issueDate);
       //const dueDate = new Date(issueDate);
       //dueDate.setDate(issueDate.getDate() + 10);
@@ -327,10 +341,15 @@ export const checkFinesAndSendReminder = async () => {
   </html>
 `;
 
-        await sendEmail(fine.email, "Reminder: Unpaid Fine Payment", emailBody);
-        //  await sendEmail(fine.dName, "Reminder: Unpaid Traffic Fine", emailBody);
+        try {
+          await sendEmail(fine.email, "Reminder: Unpaid Fine Payment", emailBody);
+          //  await sendEmail(fine.dName, "Reminder: Unpaid Traffic Fine", emailBody);
+        } catch (error) {
+          // Don't let one bad recipient stop the rest of the batch.
+          console.error(`Failed to send reminder email for fine ${fine._id}:`, error);
+        }
       }
-    });
+    }
   } catch (error) {
     console.error("Error fetching fines:", error);
   }

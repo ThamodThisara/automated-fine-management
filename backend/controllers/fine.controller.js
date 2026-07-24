@@ -175,8 +175,16 @@ export const fineIssue = async (req, res, next) => {
   </body>
   </html>
 `;
-    await sendEmail(email, "Notice: Traffic Fine", emailBodyFine);
-    // await sendEmail(email, "Notice: Traffic Fine", emailBodyFine);
+    // The fine is already saved at this point — a failed notice email shouldn't make the
+    // issuing officer think the fine wasn't created and re-submit it, creating a duplicate.
+    try {
+      await sendEmail(email, "Notice: Traffic Fine", emailBodyFine);
+    } catch (emailError) {
+      console.error(
+        `Fine ${savedFine._id} was saved but the notice email failed to send:`,
+        emailError
+      );
+    }
     res.json("Fine registration is successfull");
   } catch (error) {
     next(error);
