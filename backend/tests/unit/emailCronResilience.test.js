@@ -27,9 +27,8 @@ vi.mock("nodemailer", () => ({
   },
 }));
 
-const { checkFinesAndSendReminder, checkFinesAndSendEmails } = await import(
-  "../../controllers/email.controller.js"
-);
+const { checkFinesAndSendReminder, checkFinesAndSendEmails, updateBlockedFines } =
+  await import("../../controllers/email.controller.js");
 const { connectTestDB, disconnectTestDB, clearDB } = await import(
   "../helpers/db.js"
 );
@@ -183,5 +182,67 @@ describe("checkFinesAndSendEmails ADMIN_NOTIFICATION_EMAIL copy", () => {
     expect(mockSendMail).toHaveBeenCalledWith(
       expect.objectContaining({ to: "driver@test.local" })
     );
+  });
+});
+
+// Regression test for the index.js cron ordering: updateBlockedFines() must run BEFORE
+// checkFinesAndSendEmails() in the same daily tick, because checkFinesAndSendEmails only
+// matches fines where block:true. A fine that expired yesterday isn't blocked yet until
+// updateBlockedFines sets it — so if the email check ran first (the old order), that fine
+// would never match on this run, and by tomorrow its expireDate is no longer "yesterday" for
+// either function, meaning it would silently never receive the notice at all.
+describe("cron ordering: updateBlockedFines must run before checkFinesAndSendEmails", () => {
+  const originalAdminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+
+  beforeEach(() => {
+    // Irrelevant to what's being tested here — neutralize it for a deterministic call count.
+    delete process.env.ADMIN_NOTIFICATION_EMAIL;
+  });
+
+  afterEach(() => {
+    if (originalAdminEmail === undefined) {
+      delete process.env.ADMIN_NOTIFICATION_EMAIL;
+    } else {
+      process.env.ADMIN_NOTIFICATION_EMAIL = originalAdminEmail;
+    }
+  });
+
+  it("with the OLD order (email check first), a freshly-expired fine is missed entirely", async () => {
+    const yesterday = new Date(dateStringDaysAgo(1));
+    await seedFine({
+      email: "driver@test.local",
+      expireDate: yesterday,
+      state: false,
+      block: false, // not yet blocked — updateBlockedFines hasn't run yet
+    });
+
+    mockSendMail.mockResolvedValue({});
+
+    await checkFinesAndSendEmails(); // wrong order: runs before the fine is blocked
+    expect(mockSendMail).not.toHaveBeenCalled();
+
+    await updateBlockedFines(); // now it becomes blocked, too late for today's email pass
+    const fine = await Fine.findOne({ email: "driver@test.local" });
+    expect(fine.block).toBe(true);
+    expect(fine.blockNoticeSent).toBe(false); // never got the notice, and never will
+  });
+
+  it("with the NEW order (block update first), the same fine is correctly notified", async () => {
+    const yesterday = new Date(dateStringDaysAgo(1));
+    await seedFine({
+      email: "driver@test.local",
+      expireDate: yesterday,
+      state: false,
+      block: false,
+    });
+
+    mockSendMail.mockResolvedValue({});
+
+    await updateBlockedFines(); // matches index.js's actual call order
+    await checkFinesAndSendEmails();
+
+    expect(mockSendMail).toHaveBeenCalledTimes(1);
+    const fine = await Fine.findOne({ email: "driver@test.local" });
+    expect(fine.blockNoticeSent).toBe(true);
   });
 });

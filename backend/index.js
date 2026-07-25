@@ -49,8 +49,8 @@ connectDB();
 // Runs once daily at 09:00 to email fine notices/reminders and block overdue fines.
 cron.schedule("0 9 * * *", async () => {
   console.log("Running daily fine cron job...");
-  await checkFinesAndSendEmails();
   await updateBlockedFines();
+  await checkFinesAndSendEmails();
   await checkFinesAndSendReminder();
 });
 

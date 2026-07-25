@@ -74,6 +74,16 @@ const fineShema = new mongoose.Schema(
       required: true,
       default: false,
     },
+
+    reminderSent: {
+      type: Boolean,
+      default: false,
+    },
+
+    blockNoticeSent: {
+        type: Boolean,
+        default: false,
+    }
   },
   { timestamps: true }
 );
