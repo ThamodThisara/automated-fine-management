@@ -31,7 +31,7 @@ export const Contact = () => {
   const navigate = useNavigate();
   useEffect(() => {
     const fetchValues = async () => {
-      await fetch("/api/v1/static//getstaticvalue/station")
+      await fetch("/api/v1/static/getstaticvalue/station")
         .then((res) => res.json())
         .then((data) => setStations(data));
     };
