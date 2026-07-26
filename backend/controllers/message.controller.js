@@ -29,60 +29,71 @@ export const getGroup = async (req, res, next) => {
   }
 };
 
-export const sendMessage = async (req, res, next) => {
-  try {
-    const { message } = req.body;
-    if (!message || message === "") {
-      return next(errorHandler(400, "All fields are required"));
+export const sendMessage = async (req,res,next)=>{
+  try{
+    const {message}=req.body;
+
+    if(!message || message.trim()===""){
+      return next(errorHandler(400,"Message is required"));
     }
 
-    const sender = await User.findById(req.params.id);
-    if (!sender) {
-      return next(errorHandler(404, "User not found."));
+    const sender=await User.findById(req.params.id);
+
+    if(!sender){
+      return next(errorHandler(404,"User not found"));
     }
 
-    if (sender.role === "driver") {
-      return next(errorHandler(401, "Unauthorized"));
+    if(sender.role==="driver"){
+      return next(errorHandler(403,"Forbidden"));
     }
 
-    let conversation = await Conversation.findOne({
-      station: req.params.station,
+    let conversation=await Conversation.findOne({
+      station:req.params.station
     });
 
-    if (!conversation) {
-      conversation = await Conversation.create({
-        station: req.params.station,
+    if(!conversation){
+      conversation=await Conversation.create({
+        station:req.params.station
       });
     }
 
-    const newMessage = new Message({
-      senderId: req.params.id,
-      station: req.params.station,
-      senderName: sender.name,
-      senderImage: sender.profilePicture,
-      message,
+    const newMessage=new Message({
+      senderId:req.params.id,
+      station:req.params.station,
+      senderName:sender.name,
+      senderImage:sender.profilePicture,
+      message
     });
 
-    if (newMessage) {
-      conversation.message.push(newMessage._id);
+    conversation.message.push(newMessage._id);
+
+    await Promise.all([
+      conversation.save(),
+      newMessage.save()
+    ]);
+
+    let participants;
+
+    if(req.params.station==="all"){
+      participants=await User.find({
+        role:{
+          $ne:"driver"
+        }
+      });
+    }else{
+      participants=await User.find({
+        pStation:req.params.station
+      });
     }
 
-    if (req.params.station === "all") {
-      var participants = await User.find({ role: { $ne: "driver" } });
-    } else {
-      var participants = await User.find({ pStation: req.params.station });
-    }
-    participants.forEach((participant) => {
-      const participantSocketId = getReceiverSocketId(participant._id);
-      if (participantSocketId) {
-        io.to(participantSocketId).emit("newMessage", newMessage);
+    participants.forEach((participant)=>{
+      const socketId=getReceiverSocketId(participant._id);
+      if(socketId){
+        io.to(socketId).emit("newMessage", newMessage);
       }
     });
-
-    await Promise.all([conversation.save(), newMessage.save()]);
-
     res.status(201).json(newMessage);
-  } catch (error) {
+  }catch(error){
     next(error);
   }
 };
