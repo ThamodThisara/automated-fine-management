@@ -15,7 +15,7 @@ export const FooterPage = () => {
             <Footer.Copyright
               href="#"
               by="Sri Lankan Police"
-              year={2025}
+              year={2026}
               className="text-white hover:text-teal-200 transition-colors duration-300"
             />
           </Link>
