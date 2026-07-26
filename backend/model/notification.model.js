@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
   {
-    fineId: {
+    violationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Violation",
       required: true,

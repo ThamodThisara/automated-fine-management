@@ -93,7 +93,7 @@ export const violationUpdate = async (req, res, next) => {
     );
 
     const newNotification = new Notification({
-      fineId: violation._id,
+      violationId: violation._id,
       type,
       price
     });
