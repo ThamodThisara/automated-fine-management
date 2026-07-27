@@ -1,8 +1,10 @@
 import React from "react";
 import { Alert, Button, Label, Modal, Table, TextInput } from "flowbite-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 export const DashDriverFineView = () => {
+  const { authUser } = useContext(AuthContext);
   const [fine, setFine] = useState([]);
   const [error, setError] = useState(null);
   // const [fineIdToView, setFineIdToView] = useState("");
@@ -27,7 +29,7 @@ export const DashDriverFineView = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "driver-view",
-              createdBy: "AdminUser",
+              createdBy: authUser.id,
             }),
           });
           setError("");
