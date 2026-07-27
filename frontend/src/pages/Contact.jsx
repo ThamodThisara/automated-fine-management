@@ -20,7 +20,7 @@ import { useNavigate } from "react-router-dom";
 
 export const Contact = () => {
   const [formData, setFormData] = useState({});
-  const [stations, setStations] = useState({});
+  const [stations, setStations] = useState([]);
   const [stationEmail, setStationEmail] = useState("");
   const [stationNumber, setStationNumber] = useState("");
 
@@ -31,7 +31,7 @@ export const Contact = () => {
   const navigate = useNavigate();
   useEffect(() => {
     const fetchValues = async () => {
-      await fetch("/api/v1/static/getstaticvalue/station")
+      await fetch("/api/v1/station/getall")
         .then((res) => res.json())
         .then((data) => setStations(data));
     };
@@ -106,8 +106,8 @@ export const Contact = () => {
   };
 
   const handleStationSelect = async (e) => {
-    const result = await stations.data.value.find(
-      (item) => item.name === e.target.value
+    const result = await stations.find(
+      (item) => item.station === e.target.value
     );
     if (e.target.value !== "Stations") {
       setStationEmail(result.email);
@@ -330,12 +330,12 @@ export const Contact = () => {
                 >
                   <option className="text-gray-400">Select Station</option>
                   {stations &&
-                    stations.data?.value.map((s, index) => (
+                    stations.map((s, index) => (
                       <option
                         key={index}
                         className="text-gray-900 dark:text-white"
                       >
-                        {s.name}
+                        {s.station}
                       </option>
                     ))}
                 </Select>

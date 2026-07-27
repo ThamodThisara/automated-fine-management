@@ -31,7 +31,7 @@ export default function DashReport() {
 
   const fetchValues = async () => {
     try {
-      const res = await fetch("/api/v1/static/getstaticvalue/station");
+      const res = await fetch("/api/v1/station/getall");
       const data = await res.json();
       setStations(data);
     } catch (err) {
@@ -256,9 +256,9 @@ export default function DashReport() {
                 className="mt-1"
               >
                 <option value="">All Stations</option>
-                {stations?.data?.value.map((s, index) => (
-                  <option value={s.name} key={index}>
-                    {s.name}
+                {stations?.map((s, index) => (
+                  <option value={s.station} key={index}>
+                    {s.station}
                   </option>
                 ))}
               </Select>

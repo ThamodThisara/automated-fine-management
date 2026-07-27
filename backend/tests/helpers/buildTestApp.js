@@ -16,7 +16,7 @@ import fineRoutes from "../../routes/fine.route.js";
 import messageRoutes from "../../routes/message.route.js";
 import violatioRoute from "../../routes/violation.route.js";
 import complainRoutes from "../../routes/complain.route.js";
-import stativRoutes from "../../routes/staticvalue.route.js";
+import stationRoutes from "../../routes/station.route.js";
 import notificationRoutes from "../../routes/notification.route.js";
 import activityRoutes from "../../routes/activity.route.js";
 import payRoutes from "../../routes/payment.route.js";
@@ -41,7 +41,7 @@ export const buildTestApp = () => {
   app.use("/api/v1/violation", violatioRoute);
   app.use("/api/pay", payRoutes);
   app.use("/api/v1/complain", complainRoutes);
-  app.use("/api/v1/static", stativRoutes);
+  app.use("/api/v1/station", stationRoutes);
   app.use("/api/v1/notification", notificationRoutes);
   app.use("/api/v1/activity", activityRoutes);
 

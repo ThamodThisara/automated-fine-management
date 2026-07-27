@@ -10,6 +10,7 @@ import {
   HiHome,
   HiOutlineLogout,
   HiUsers,
+  HiOfficeBuilding,
 } from "react-icons/hi";
 import DashOfficerSignUp from "../components/DashOfficerSignUp";
 import { DashVehicleSignUp } from "../components/DashVehicleSignUp";
@@ -23,6 +24,9 @@ import { DashVehicleDelete } from "../components/DashVehicleDelete";
 import { DashViolationTypeCreate } from "../components/DashViolationTypeCreate";
 import { DashViolationTypeUpdate } from "../components/DashViolationTypeUpdate";
 import { DashViolationTypeDelete } from "../components/DashViolationTypeDelete";
+import { DashStationCreate } from "../components/DashStationCreate";
+import { DashStationUpdate } from "../components/DashStationUpdate";
+import { DashStationDelete } from "../components/DashStationDelete";
 import { DashBlockFineUpdate } from "../components/DashBlockFineUpdate";
 import DashReport from "../components/DashReport";
 import { AuthContext } from "../context/AuthContext";
@@ -50,6 +54,9 @@ function getPageTitle(dashParam) {
     "violationType-create": "Create Violation Type",
     "violationType-update": "Update Violation Types",
     "violationType-delete": "Delete Violation Types",
+    "station-create": "Add Station",
+    "station-update": "Update Station Records",
+    "station-delete": "Delete Station Records",
     "blockFine-update": "Update Block Fines",
     "view-complaint": "View Complaint",
     "report-generate": "Generate System Reports",
@@ -348,6 +355,29 @@ export const Dashboard = () => {
                   </Link>
                 </Sidebar.Collapse>
 
+                {/* Manage Station */}
+                <Sidebar.Collapse
+                  icon={HiOfficeBuilding}
+                  label={!collapsed && "Manage Station"}
+                  className="text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300"
+                >
+                  <Link to="/dashboard?dash=station-create">
+                    <Sidebar.Item className="hover:bg-cyan-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Add Station"}
+                    </Sidebar.Item>
+                  </Link>
+                  <Link to="/dashboard?dash=station-update">
+                    <Sidebar.Item className="hover:bg-cyan-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Update Station"}
+                    </Sidebar.Item>
+                  </Link>
+                  <Link to="/dashboard?dash=station-delete">
+                    <Sidebar.Item className="hover:bg-cyan-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Delete Station"}
+                    </Sidebar.Item>
+                  </Link>
+                </Sidebar.Collapse>
+
                 {/* Manage Fine */}
                 <Sidebar.Collapse
                   icon={HiDocumentText}
@@ -471,6 +501,15 @@ export const Dashboard = () => {
                 )) ||
                 (searchParams.get("dash") === "violationType-delete" && (
                   <DashViolationTypeDelete />
+                )) ||
+                (searchParams.get("dash") === "station-create" && (
+                  <DashStationCreate />
+                )) ||
+                (searchParams.get("dash") === "station-update" && (
+                  <DashStationUpdate />
+                )) ||
+                (searchParams.get("dash") === "station-delete" && (
+                  <DashStationDelete />
                 )) ||
                 (searchParams.get("dash") === "blockFine-update" && (
                   <DashBlockFineUpdate />

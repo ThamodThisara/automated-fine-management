@@ -28,12 +28,12 @@ export default function DashAdminSignUp() {
   const [file, setFile] = useState(null);
   const [imageUploadProgress, setImageUploadProgress] = useState(0);
   const [imageUploadError, setImageUploadError] = useState(null);
-  const [stations, setStations] = useState({});
+  const [stations, setStations] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchValues = async () => {
-      await fetch("/api/v1/static//getstaticvalue/station")
+      await fetch("/api/v1/station/getall")
         .then((res) => res.json())
         .then((data) => setStations(data));
     };
@@ -289,8 +289,8 @@ export default function DashAdminSignUp() {
                 >
                   <option>Select Police Station</option>
                   {stations &&
-                    stations.data?.value.map((s, index) => (
-                      <option key={index}>{s.name}</option>
+                    stations.map((s, index) => (
+                      <option key={index}>{s.station}</option>
                     ))}
                 </Select>
               </div>

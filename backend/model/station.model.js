@@ -1,44 +1,28 @@
 import mongoose from "mongoose";
 
-const stationShema = new mongoose.Schema(
+const stationSchema = new mongoose.Schema(
   {
-    sId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-
     station: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
 
-    sPhoneNumber: {
+    email: {
       type: String,
       required: true,
-      unique: true,
+      trim: true,
     },
 
-    sEmail: {
+    phone: {
       type: String,
       required: true,
-      unique: true,
-    },
-
-    oId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-
-    oName: {
-      type: String,
-      required: true,
+      trim: true,
     },
   },
   { timestamps: true }
 );
 
-const Station = mongoose.model("Station", stationShema);
+const Station = mongoose.model("Station", stationSchema);
 export default Station;

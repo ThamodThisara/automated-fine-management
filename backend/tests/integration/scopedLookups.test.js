@@ -8,7 +8,7 @@ import { buildTestApp } from "../helpers/buildTestApp.js";
 import { connectTestDB, disconnectTestDB, clearDB, seedUsers } from "../helpers/db.js";
 import { cookieFor } from "../helpers/auth.js";
 import Fine from "../../model/fine.model.js";
-import StaticValue from "../../model/static.value.model.js";
+import Station from "../../model/station.model.js";
 
 const app = buildTestApp();
 
@@ -89,19 +89,21 @@ describe("GET /api/v1/fine/getblockdriverfine/:dId", () => {
   });
 });
 
-describe("GET /api/v1/static/getstaticvalue/:key", () => {
-  it("returns a structured 404 (via the centralized error handler) for an unknown key", async () => {
-    const res = await request(app).get("/api/v1/static/getstaticvalue/unknown-key");
-    expect(res.status).toBe(404);
-    expect(res.body).toMatchObject({ success: false, statusCode: 404 });
-  });
-
-  it("returns 200 with the stored value for a known key", async () => {
-    await StaticValue.create({ key: "fineGracePeriodDays", value: 14 });
-    const res = await request(app).get(
-      "/api/v1/static/getstaticvalue/fineGracePeriodDays"
-    );
+describe("GET /api/v1/station/getall", () => {
+  it("is publicly accessible (no auth) and returns the seeded stations", async () => {
+    await Station.create({
+      station: "Central",
+      email: "central@test.local",
+      phone: "0110000000",
+    });
+    const res = await request(app).get("/api/v1/station/getall");
     expect(res.status).toBe(200);
-    expect(res.body.data.value).toBe(14);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0]).toMatchObject({
+      station: "Central",
+      email: "central@test.local",
+      phone: "0110000000",
+    });
   });
 });
