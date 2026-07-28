@@ -110,7 +110,7 @@ export const DashDriverSignUp = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "driver-create",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         window.location.href = "/dashboard";
@@ -184,22 +184,6 @@ export const DashDriverSignUp = () => {
                       Change a few things up and try submitting again.
                     </Alert>
                   )}
-                </div>
-
-                <div>
-                  <Label
-                    htmlFor="id"
-                    value="Driver ID"
-                    className="block mb-2 font-medium text-gray-700"
-                  />
-                  <TextInput
-                    id="id"
-                    type="text"
-                    required
-                    shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    onChange={handleTextboxDataChange}
-                  />
                 </div>
 
                 <div>

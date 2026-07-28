@@ -29,10 +29,11 @@ export const disconnectTestDB = async () => {
 };
 
 // Plain-text credentials the tests use to log in (passwords are hashed on the way into DB).
+// Only officers carry a human-readable id now; admins and drivers log in by email.
 export const SEED_CREDENTIALS = {
-  admin: { email: "admin@test.local", id: "ADM-001", password: "Admin@123" },
+  admin: { email: "admin@test.local", password: "Admin@123" },
   officer: { email: "officer@test.local", id: "OFF-001", password: "Officer@123" },
-  driver: { email: "driver@test.local", id: "DRV-001", password: "Driver@123" },
+  driver: { email: "driver@test.local", password: "Driver@123" },
 };
 
 // Inserts one admin, one officer and one driver. Returns the created user documents.
@@ -48,7 +49,6 @@ export const seedUsers = async () => {
     ...base,
     name: "Test Admin",
     email: SEED_CREDENTIALS.admin.email,
-    id: SEED_CREDENTIALS.admin.id,
     password: bcrypt.hashSync(SEED_CREDENTIALS.admin.password, 9),
     role: "admin",
     pStation: "Central",
@@ -68,7 +68,6 @@ export const seedUsers = async () => {
     ...base,
     name: "Test Driver",
     email: SEED_CREDENTIALS.driver.email,
-    id: SEED_CREDENTIALS.driver.id,
     password: bcrypt.hashSync(SEED_CREDENTIALS.driver.password, 9),
     role: "driver",
     vType: "Car",

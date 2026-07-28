@@ -7,6 +7,7 @@ import {
   getBlockFine,
   getBlockFines,
   getFine,
+  getFineByNic,
   getFineByOid,
   getFineOfficer,
   getUnpaidFine,
@@ -25,12 +26,13 @@ router.post("/fineissue", verifyToken, verifyRole("admin", "officer"), fineIssue
 router.put("/updateblockfines/:_id", verifyToken, verifyRole("admin", "officer"), fineUpdate);
 
 // Authenticated reads.
-router.get("/getfine/:dId", verifyToken, getFine);
+router.get("/getfine/:driverId", verifyToken, getFine);
+router.get("/getfinebynic/:nic", verifyToken, getFineByNic);
 router.get("/getblockfines", verifyToken, getBlockFines);
 router.get("/getblockfine/:_id", verifyToken, getBlockFine);
 router.get("/pdf", verifyToken, generateFinePDF);
 router.get("/getfineofficer/:pId", verifyToken, getFineOfficer);
-router.get("/getunpaidfine/:dId", verifyToken, getUnpaidFine);
-router.get("/getblockdriverfine/:dId", verifyToken, getblockdriverFine);
+router.get("/getunpaidfine/:driverId", verifyToken, getUnpaidFine);
+router.get("/getblockdriverfine/:driverId", verifyToken, getblockdriverFine);
 
 export default router;

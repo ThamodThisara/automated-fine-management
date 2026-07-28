@@ -24,7 +24,7 @@ export default function DashViewComplaint() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "view-complaint",
-              createdBy: authUser.id,
+              createdBy: authUser._id,
             }),
           });
         }

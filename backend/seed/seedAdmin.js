@@ -8,16 +8,17 @@ import User from "../model/user.model.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
+// Admins are identified by their MongoDB _id, so no human-readable id is set here.
 const ADMIN = {
-  name: "Default Admin",
+  name: "Admin",
   email: "admin@example.com",
-  id: "admin",
   password: "admin123",
-  nic: "000000000V",
-  dob: new Date("1990-01-01"),
-  address: "N/A",
-  phoneNumber: "0000000000",
+  nic: "992322900V",
+  dob: new Date("1999-08-19"),
+  address: "Kadawatha",
+  phoneNumber: "0768583077",
   role: "admin",
+  pStation: "Central",
 };
 
 const seedAdmin = async () => {
@@ -29,7 +30,7 @@ const seedAdmin = async () => {
 
     if (existing) {
       console.log(
-        `Admin already exists (email: ${existing.email}, id: ${existing.id}). Skipping seed.`
+        `Admin already exists (email: ${existing.email}). Skipping seed.`
       );
       return;
     }
@@ -39,7 +40,7 @@ const seedAdmin = async () => {
     await User.create({ ...ADMIN, password: hashedPassword });
 
     console.log(
-      `Default admin created — email: ${ADMIN.email}, id: ${ADMIN.id}, password: ${ADMIN.password}`
+      `Default admin created — email: ${ADMIN.email}, password: ${ADMIN.password}`
     );
   } catch (error) {
     console.error("Failed to seed admin:", error);

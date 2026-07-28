@@ -35,7 +35,7 @@ export const DashViolationTypeCreate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "violationType-create",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         Navigate("/dashboard");

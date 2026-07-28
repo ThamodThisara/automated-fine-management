@@ -131,7 +131,7 @@ export default function DashAdminUpdate() {
       return;
     }
     try {
-      const res = await fetch(`/api/v1/user/update/${searchId}`, {
+      const res = await fetch(`/api/v1/user/update/${user._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -148,7 +148,7 @@ export default function DashAdminUpdate() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "Admin-update",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         navigate("/dashboard");
@@ -180,17 +180,17 @@ export default function DashAdminUpdate() {
           <div className="flex flex-col sm:flex-row items-center gap-4 bg-blue-50 p-4 rounded-lg">
             <div className="w-full">
               <Label
-                value="Search by Admin ID"
+                value="Search by Admin NIC"
                 className="block text-sm font-medium text-gray-700 mb-1"
               />
               <div className="relative">
                 <TextInput
-                  id="id"
+                  id="nic"
                   type="text"
                   required
                   className="w-full pl-10 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   onChange={handleSearchId}
-                  placeholder="Enter Admin ID"
+                  placeholder="Enter Admin NIC"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
@@ -330,23 +330,6 @@ export default function DashAdminUpdate() {
                     required
                     className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     defaultValue={user?.name || ""}
-                    onChange={handleTextboxDataChange}
-                  />
-                </div>
-
-                {/* ID */}
-                <div>
-                  <Label
-                    value="Admin ID"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  />
-                  <TextInput
-                    id="id"
-                    type="text"
-                    placeholder="OF-12345"
-                    required
-                    className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    defaultValue={user?.id || ""}
                     onChange={handleTextboxDataChange}
                   />
                 </div>

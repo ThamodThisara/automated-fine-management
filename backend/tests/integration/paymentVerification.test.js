@@ -31,7 +31,8 @@ const app = buildTestApp();
 
 const seedFine = (overrides = {}) =>
   Fine.create({
-    dId: "DRV-001",
+    driver: "DRV-001",
+    dNic: "990000000V",
     dName: "Test Driver",
     email: "driver@test.local",
     vNo: "ABC-1234",

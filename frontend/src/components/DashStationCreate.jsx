@@ -30,7 +30,7 @@ export const DashStationCreate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "station-create",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         navigate("/dashboard");

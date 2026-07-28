@@ -22,7 +22,7 @@ export const DashFineView = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "fine-view",
-              createdBy: authUser.id,
+              createdBy: authUser._id,
             }),
           });
         }
@@ -40,7 +40,7 @@ export const DashFineView = () => {
       if (fineIdToView === "") {
         return setError("Fill Serach field");
       }
-      const res = await fetch(`/api/v1/fine/getfine/${fineIdToView}`);
+      const res = await fetch(`/api/v1/fine/getfinebynic/${fineIdToView}`);
       const data = await res.json();
       console.log(data);
       if (data.success == false) {
@@ -73,14 +73,14 @@ export const DashFineView = () => {
             <div className="flex flex-col sm:flex-row gap-2 items-end">
               <div className="w-full">
                 <Label
-                  value="Search by Driver ID"
+                  value="Search by Driver NIC"
                   className="block text-sm font-medium text-cyan-700 mb-1"
                 />
                 <div className="relative flex items-center">
                   <TextInput
-                    id="id"
+                    id="nic"
                     type="text"
-                    placeholder="Enter driver ID"
+                    placeholder="Enter driver NIC"
                     className="w-full pl-10 pr-8 py-2.5"
                     onChange={(e) => setFineIdToView(e.target.value)}
                     value={fineIdToView}
@@ -146,7 +146,7 @@ export const DashFineView = () => {
                 <Table hoverable className="min-w-full">
                   <Table.Head className="bg-gray-800 text-white sticky top-0">
                     <Table.HeadCell className="px-6 py-3 text-blue-400">
-                      Driver ID
+                      Driver NIC
                     </Table.HeadCell>
                     <Table.HeadCell className="px-6 py-3 text-blue-400">
                       Driver Name
@@ -192,7 +192,7 @@ export const DashFineView = () => {
                     {fine.map((fines) => (
                       <Table.Row key={fines._id} className="hover:bg-gray-50">
                         <Table.Cell className="px-6 py-4 font-medium text-gray-900">
-                          {fines.dId}
+                          {fines.dNic}
                         </Table.Cell>
                         <Table.Cell className="px-6 py-4">
                           {fines.dName}
@@ -286,7 +286,7 @@ export const DashFineView = () => {
               <p className="mt-1 text-sm text-gray-500">
                 {fineIdToView
                   ? "No fines match the search criteria"
-                  : "Search for fines using driver ID"}
+                  : "Search for fines using driver NIC"}
               </p>
             </div>
           )}

@@ -94,7 +94,7 @@ export const DashViolationTypeUpdate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "violationType-update",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         window.location.reload();

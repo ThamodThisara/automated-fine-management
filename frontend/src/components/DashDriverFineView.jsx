@@ -8,7 +8,7 @@ export const DashDriverFineView = () => {
   const [fine, setFine] = useState([]);
   const [error, setError] = useState(null);
   // const [fineIdToView, setFineIdToView] = useState("");
-  const fineIdToView = JSON.parse(localStorage.getItem("user")).id;
+  const fineIdToView = JSON.parse(localStorage.getItem("user"))._id;
 
   useEffect(() => {
     const getFine = async () => {
@@ -29,7 +29,7 @@ export const DashDriverFineView = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "driver-view",
-              createdBy: authUser.id,
+              createdBy: authUser._id,
             }),
           });
           setError("");
@@ -91,7 +91,7 @@ export const DashDriverFineView = () => {
               >
                 <Table.Head cclassName="bg-teal-600 text-white sticky top-0">
                   <Table.HeadCell className="px-6 py-4 text-teal-500">
-                    Driver Id
+                    Driver NIC
                   </Table.HeadCell>
                   <Table.HeadCell className="px-6 py-4 text-teal-500">
                     Driver Name
@@ -141,7 +141,7 @@ export const DashDriverFineView = () => {
                       className="transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <Table.Cell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white sticky left-0 z-10 bg-white dark:bg-gray-800">
-                        {fines.dId}
+                        {fines.dNic}
                       </Table.Cell>
                       <Table.Cell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                         {fines.dName}

@@ -21,7 +21,7 @@ export const DashBlockFineView = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "block-view",
-              createdBy: authUser.id,
+              createdBy: authUser._id,
             }),
           });
         }
@@ -64,7 +64,7 @@ export const DashBlockFineView = () => {
                 <Table hoverable className="min-w-max">
                   <Table.Head className="bg-teal-600 text-white sticky top-0">
                     <Table.HeadCell className="px-6 py-3 text-slate-600">
-                      Driver ID
+                      Driver NIC
                     </Table.HeadCell>
                     <Table.HeadCell className="px-6 py-3 text-slate-600">
                       Driver Name
@@ -113,7 +113,7 @@ export const DashBlockFineView = () => {
                         className="hover:bg-gray-50 transition-colors"
                       >
                         <Table.Cell className="px-6 py-4 font-medium text-gray-900">
-                          {fines.dId}
+                          {fines.dNic}
                         </Table.Cell>
                         <Table.Cell className="px-6 py-4">
                           {fines.dName}

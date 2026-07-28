@@ -22,7 +22,7 @@ export const DashVehiclesView = () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "vehicle-view",
-              createdBy: authUser.id,
+              createdBy: authUser._id,
             }),
           });
         }

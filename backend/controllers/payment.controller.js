@@ -23,7 +23,7 @@ export const checkout = async (req, res, next) => {
       customer_email: data.email, // Attach user's email
       metadata: {
         fineId: String(data._id), // Used by updateSuccessPayment to know which fine to mark paid
-        driverId: data.dId,
+        driverNic: data.dNic,
         driverName: data.dName,
         vehicleNo: data.vNo,
         issuedAt: String(data.issueDate ?? ""), // issueDate is serialized as an ISO string

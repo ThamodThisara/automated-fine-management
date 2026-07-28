@@ -16,10 +16,11 @@ import { verifyToken, verifyRole } from "../middleware/verifyToken.js";
 const router = express.Router();
 
 // Reads: any authenticated user (e.g. drivers view their own profile).
-router.get("/getuser/:id", verifyToken, getUser);
+// Drivers and admins are looked up by NIC; officers keep their human-readable id.
+router.get("/getuser/:nic", verifyToken, getUser);
 router.get("/getofficer/:id", verifyToken, getOfficer);
-router.get("/getadmin/:id", verifyToken, getAdmin);
-router.put("/update/:id", verifyToken, userUpdate);
+router.get("/getadmin/:nic", verifyToken, getAdmin);
+router.put("/update/:userId", verifyToken, userUpdate);
 router.get("/getallofficers", verifyToken, getAllOfficers);
 router.get("/getalldrivers", verifyToken, getAllDrivers);
 

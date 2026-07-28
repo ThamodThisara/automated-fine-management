@@ -54,23 +54,23 @@ export const DriverDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        if (!authUser || !authUser.id) {
+        if (!authUser || !authUser._id) {
           console.error("authUser not ready yet for stats");
           return;
         }
 
-        const finesRes = await fetch(`/api/v1/fine/getfine/${authUser.id}`);
+        const finesRes = await fetch(`/api/v1/fine/getfine/${authUser._id}`);
         const finesData = await finesRes.json();
         console.log(finesData);
 
         const unpaidRes = await fetch(
-          `/api/v1/fine/getunpaidfine/${authUser.id}`
+          `/api/v1/fine/getunpaidfine/${authUser._id}`
         );
         const unpaidData = await unpaidRes.json();
         console.log(unpaidData);
 
         const blockRes = await fetch(
-          `/api/v1/fine/getblockdriverfine/${authUser.id}`
+          `/api/v1/fine/getblockdriverfine/${authUser._id}`
         );
         const blockData = await blockRes.json();
         console.log(blockData);
@@ -85,7 +85,7 @@ export const DriverDashboard = () => {
       }
     };
 
-    if (authUser && authUser.id) {
+    if (authUser && authUser._id) {
       fetchStats();
     }
   }, [authUser]); //

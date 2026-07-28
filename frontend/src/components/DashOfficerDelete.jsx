@@ -68,7 +68,7 @@ export const DashOfficerDelete = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "officer-delete",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
       }

@@ -20,7 +20,7 @@ export const DashFineIssue = () => {
   );
   const [rules, setRules] = useState(null);
   const [selectedRule, setSelectedRule] = useState(null);
-  const [driverId, setDriverId] = useState(null);
+  const [driverNic, setDriverNic] = useState(null);
   const [driver, setDriver] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -39,16 +39,25 @@ export const DashFineIssue = () => {
   }, []);
 
   useEffect(() => {
+    // Officers identify the driver by NIC; the fine stores the driver's _id as the
+    // relationship key and their NIC (dNic) for human-readable display.
+    if (!driverNic) return;
     const getDriver = async () => {
-      await fetch(`/api/v1/user/getuser/${driverId}`)
+      await fetch(`/api/v1/user/getuser/${driverNic}`)
         .then((res) => res.json())
         .then((data) => {
           setDriver(data);
-          setFormData({ ...formData, dName: data.name, email: data.email });
+          setFormData({
+            ...formData,
+            driver: data._id,
+            dNic: data.nic,
+            dName: data.name,
+            email: data.email,
+          });
         });
     };
     getDriver();
-  }, [driverId]);
+  }, [driverNic]);
 
   useEffect(() => {
     setFormData({
@@ -75,7 +84,7 @@ export const DashFineIssue = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "fine-issue",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         navigate("/officerDashboard");
@@ -126,22 +135,16 @@ export const DashFineIssue = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label
-                    htmlFor="dId"
-                    value="Driver ID"
+                    htmlFor="dNic"
+                    value="Driver NIC"
                     className="block text-sm font-medium text-gray-700 mb-1"
                   />
                   <TextInput
-                    id="dId"
+                    id="dNic"
                     type="text"
                     required
                     className="w-full"
-                    onChange={(e) => {
-                      setDriverId(e.target.value);
-                      setFormData({
-                        ...formData,
-                        [e.target.id]: e.target.value,
-                      });
-                    }}
+                    onChange={(e) => setDriverNic(e.target.value)}
                   />
                 </div>
 

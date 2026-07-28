@@ -8,7 +8,12 @@ export const userUpdate = async (req, res, next) => {
   }
 
   try {
-    const user = await User.findOne({ id: req.params.id });
+    // Every user is now updated by their MongoDB _id, so this works for all roles
+    // regardless of whether they carry a human-readable id.
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return next(errorHandler(404, "User not found"));
+    }
 
     if (req.body.email) {
       if (user.email !== req.body.email) {
@@ -19,78 +24,64 @@ export const userUpdate = async (req, res, next) => {
       }
     }
 
-    if (req.body.id) {
-      if (user.id !== req.body.id) {
-        const isId = await User.findOne({ id: req.body.id });
-        if (isId) {
-          return next(errorHandler(409, "Id is already exist"));
-        }
+    // Only officers have an editable human-readable id; keep it unique when changed.
+    if (user.role === "officer" && req.body.id && user.id !== req.body.id) {
+      const isId = await User.findOne({ id: req.body.id });
+      if (isId) {
+        return next(errorHandler(409, "Id is already exist"));
       }
     }
 
-    if (user.role === "officer" || user.role === "admin") {
-      const userUpdate = await User.findByIdAndUpdate(
-        user._id,
-        {
-          $set: {
-            name: req.body.name,
-            password: req.body.password,
-            nic: req.body.nic,
-            dob: req.body.dob,
-            address: req.body.address,
-            phoneNumber: req.body.phoneNumber,
-            email: req.body.email,
-            id: req.body.id,
-            profilePicture: req.body.profilePicture,
-            pStation: req.body.pStation,
-          },
-        },
-        { new: true }
-      );
-      const { password: pass, ...rest } = userUpdate._doc;
-      res.status(200).json(rest);
-    } else if (user.role === "driver") {
-      const userUpdate = await User.findByIdAndUpdate(
-        user._id,
-        {
-          $set: {
-            name: req.body.name,
-            password: req.body.password,
-            nic: req.body.nic,
-            dob: req.body.dob,
-            address: req.body.address,
-            phoneNumber: req.body.phoneNumber,
-            email: req.body.email,
-            id: req.body.id,
-            profilePicture: req.body.profilePicture,
-            vType: req.body.vType,
-            model: req.body.model,
-          },
-        },
-        { new: true }
-      );
-      const { password: pass, ...rest } = userUpdate._doc;
-      res.status(200).json(rest);
+    const commonFields = {
+      name: req.body.name,
+      password: req.body.password,
+      nic: req.body.nic,
+      dob: req.body.dob,
+      address: req.body.address,
+      phoneNumber: req.body.phoneNumber,
+      email: req.body.email,
+      profilePicture: req.body.profilePicture,
+    };
+
+    let updateFields;
+    if (user.role === "officer") {
+      updateFields = {
+        ...commonFields,
+        id: req.body.id,
+        pStation: req.body.pStation,
+      };
+    } else if (user.role === "admin") {
+      updateFields = { ...commonFields, pStation: req.body.pStation };
+    } else {
+      updateFields = {
+        ...commonFields,
+        vType: req.body.vType,
+        model: req.body.model,
+      };
     }
+
+    const updated = await User.findByIdAndUpdate(
+      user._id,
+      { $set: updateFields },
+      { new: true }
+    );
+    const { password: pass, ...rest } = updated._doc;
+    res.status(200).json(rest);
   } catch (error) {
     next(error);
   }
 };
 
+// Drivers no longer carry a human-readable id, so they are looked up by NIC
+// (used by the fine-issue form and the driver-management screens).
 export const getUser = async (req, res, next) => {
   try {
-    const userId = req.params.id;
+    const user = await User.findOne({ nic: req.params.nic, role: "driver" });
 
-    const user = await User.findOne({ id: userId });
-
-    if (user.role === "driver")
-      if (user) {
-        res.status(200).json(user);
-      } else {
-        return next(errorHandler(404, "User not found"));
-      }
-    else {
-      console.log("This user can't find.");
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      return next(errorHandler(404, "User not found"));
     }
   } catch (error) {
     next(error);
@@ -116,20 +107,16 @@ export const getOfficer = async (req, res, next) => {
     next(error);
   }
 };
+// Admins no longer carry a human-readable id, so they are looked up by NIC
+// (used by the admin update/delete management screens).
 export const getAdmin = async (req, res, next) => {
   try {
-    const userId = req.params.id;
+    const user = await User.findOne({ nic: req.params.nic, role: "admin" });
 
-    const user = await User.findOne({ id: userId });
-
-    if (user.role === "admin")
-      if (user) {
-        res.status(200).json(user);
-      } else {
-        return next(errorHandler(404, "User not found"));
-      }
-    else {
-      console.log("This user can't find.");
+    if (user) {
+      res.status(200).json(user);
+    } else {
+      return next(errorHandler(404, "User not found"));
     }
   } catch (error) {
     next(error);

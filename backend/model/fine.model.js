@@ -2,7 +2,14 @@ import mongoose from "mongoose";
 
 const fineShema = new mongoose.Schema(
   {
-    dId: {
+    // The offending driver, stored as their MongoDB _id (the relationship key used for all
+    // driver-scoped fine lookups). dNic holds the driver's NIC purely for human-readable display.
+    driver: {
+      type: String,
+      required: true,
+    },
+
+    dNic: {
       type: String,
       required: true,
     },

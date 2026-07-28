@@ -74,7 +74,7 @@ export const DashViolationTypeDelete = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "violationType-delete",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         console.log(violationIdToDelete);

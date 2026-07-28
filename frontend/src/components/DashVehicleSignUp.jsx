@@ -42,7 +42,7 @@ export const DashVehicleSignUp = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "vehicle-create",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         window.location.href = "/dashboard";

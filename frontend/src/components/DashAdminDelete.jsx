@@ -68,7 +68,7 @@ export default function DashAdminDelete() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "admin-delete",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
       }
@@ -99,17 +99,17 @@ export default function DashAdminDelete() {
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="w-full sm:w-auto">
                 <Label
-                  htmlFor="id"
-                  value="Admin ID"
+                  htmlFor="nic"
+                  value="Admin NIC"
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                 />
                 <div className="relative">
                   <TextInput
-                    id="id"
+                    id="nic"
                     type="text"
                     required
                     className="w-full rounded-lg border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:bg-gray-600 dark:text-white pl-10"
-                    placeholder="Enter Admin ID"
+                    placeholder="Enter Admin NIC"
                     onChange={(e) => setUserIdToDelete(e.target.value)}
                   />
                   <div className="absolute left-3 top-2.5 text-gray-400 dark:text-gray-500">
@@ -179,7 +179,6 @@ export default function DashAdminDelete() {
                 <Table hoverable className="min-w-full">
                   <Table.Head className="sticky top-0 bg-gray-100 dark:bg-gray-700">
                     {[
-                      "ID",
                       "Profile",
                       "Name",
                       "Station",
@@ -205,9 +204,6 @@ export default function DashAdminDelete() {
                         key={user._id}
                         className="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <Table.Cell className="font-medium text-gray-900 dark:text-white">
-                          {user.id}
-                        </Table.Cell>
                         <Table.Cell>
                           <img
                             src={user.profilePicture}

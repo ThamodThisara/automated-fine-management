@@ -119,7 +119,7 @@ const DashOfficerSignUp = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "officer-create",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         window.location.href = "/dashboard";

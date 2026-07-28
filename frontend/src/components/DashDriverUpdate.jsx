@@ -130,7 +130,7 @@ export const DashDriverUpdate = () => {
       return;
     }
     try {
-      const res = await fetch(`/api/v1/user/update/${searchId}`, {
+      const res = await fetch(`/api/v1/user/update/${user._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -147,7 +147,7 @@ export const DashDriverUpdate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "driver-update",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         navigate("/dashboard");
@@ -178,17 +178,17 @@ export const DashDriverUpdate = () => {
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <div className="w-full">
               <Label
-                value="Driver ID"
+                value="Driver NIC"
                 className="block text-sm font-medium text-gray-700 mb-1"
               />
               <TextInput
-                id="id"
+                id="nic"
                 type="text"
                 required
                 shadow
                 className="w-full border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 h-10"
                 onChange={handleSearchId}
-                placeholder="Enter driver ID"
+                placeholder="Enter driver NIC"
               />
             </div>
             <div className="w-full sm:w-auto mt-6 sm:mt-6">
@@ -245,7 +245,7 @@ export const DashDriverUpdate = () => {
               <h3 className="mt-4 text-xl font-semibold text-white">
                 {user.name}
               </h3>
-              <p className="text-cyan-100">{user.id}</p>
+              <p className="text-cyan-100">{user.nic}</p>
             </div>
 
             {/* Form Fields */}
@@ -330,22 +330,6 @@ export const DashDriverUpdate = () => {
                     />
                   </div>
 
-                  <div>
-                    <Label
-                      htmlFor="id"
-                      value="Driver ID"
-                      className="block mb-1 font-medium text-gray-700"
-                    />
-                    <TextInput
-                      id="id"
-                      type="text"
-                      required
-                      shadow
-                      className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                      defaultValue={user?.id || ""}
-                      onChange={handleTextboxDataChange}
-                    />
-                  </div>
                 </div>
 
                 {/* Right Column */}

@@ -68,7 +68,7 @@ export const DashDriverDelete = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "driver-delete",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
       }
@@ -92,18 +92,18 @@ export const DashDriverDelete = () => {
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="w-full sm:w-3/4">
             <Label
-              value="Search Driver by ID"
+              value="Search Driver by NIC"
               className="block text-sm font-medium text-gray-700 mb-1"
             />
             <div className="relative">
               <TextInput
-                id="id"
+                id="nic"
                 type="text"
                 required
                 shadow
                 className="w-full pl-10 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 onChange={(e) => setUserIdToDelete(e.target.value)}
-                placeholder="Enter driver ID"
+                placeholder="Enter driver NIC"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg
@@ -161,7 +161,7 @@ export const DashDriverDelete = () => {
           <div className="overflow-x-auto max-h-96 overflow-y-auto">
             <Table hoverable className="min-w-full">
               <Table.Head className="bg-gradient-to-r from-blue-50 to-cyan-50">
-                <Table.HeadCell className="text-blue-600">ID</Table.HeadCell>
+                <Table.HeadCell className="text-blue-600">NIC</Table.HeadCell>
                 <Table.HeadCell className="text-blue-600">Photo</Table.HeadCell>
                 <Table.HeadCell className="text-blue-600">Name</Table.HeadCell>
                 <Table.HeadCell className="text-blue-600">
@@ -176,7 +176,7 @@ export const DashDriverDelete = () => {
                 {users.map((user) => (
                   <Table.Row key={user._id} className="hover:bg-gray-50">
                     <Table.Cell className="font-medium text-gray-900">
-                      {user.id}
+                      {user.nic}
                     </Table.Cell>
                     <Table.Cell>
                       <img
@@ -238,7 +238,7 @@ export const DashDriverDelete = () => {
             <h3 className="text-lg font-medium text-gray-700">
               No drivers found
             </h3>
-            <p className="text-gray-500">Try searching with a different ID</p>
+            <p className="text-gray-500">Try searching with a different NIC</p>
           </div>
         )}
       </div>

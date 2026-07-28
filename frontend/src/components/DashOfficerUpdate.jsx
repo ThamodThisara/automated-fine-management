@@ -131,7 +131,7 @@ const DashOfficerUpdate = () => {
       return;
     }
     try {
-      const res = await fetch(`/api/v1/user/update/${searchId}`, {
+      const res = await fetch(`/api/v1/user/update/${user._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -148,7 +148,7 @@ const DashOfficerUpdate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "officer-update",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         navigate("/dashboard");

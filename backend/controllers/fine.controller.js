@@ -16,8 +16,8 @@ export const fineIssue = async (req, res, next) => {
   const formattedExpireDate = expire.toLocaleDateString("en-CA");
 
   const {
-    _id,
-    dId,
+    driver,
+    dNic,
     dName,
     email,
     vNo,
@@ -29,9 +29,9 @@ export const fineIssue = async (req, res, next) => {
     charge,
   } = req.body;
 
-  console.log(_id);
   if (
-    !dId ||
+    !driver ||
+    !dNic ||
     !dName ||
     !email ||
     !vNo ||
@@ -41,7 +41,8 @@ export const fineIssue = async (req, res, next) => {
     !pName ||
     !pStation ||
     !charge ||
-    dId == "" ||
+    driver == "" ||
+    dNic == "" ||
     dName == "" ||
     email == "" ||
     vNo == "" ||
@@ -57,7 +58,8 @@ export const fineIssue = async (req, res, next) => {
 
   try {
     const createFine = Fine({
-      dId,
+      driver,
+      dNic,
       dName,
       email,
       vNo,
@@ -138,7 +140,7 @@ export const fineIssue = async (req, res, next) => {
   <body>
     <div class="container">
       <div class="header">
-        <h2 style="color: white;">🚨 Traffic Fine Notice. <br /> Driver Id-: ${dId} 🚨</h2>
+        <h2 style="color: white;">🚨 Traffic Fine Notice. <br /> Driver NIC-: ${dNic} 🚨</h2>
       </div>
       <div class="content">
         <p>Dear <strong>${dName}</strong>,</p>
@@ -200,11 +202,27 @@ export const getAllFines = async (req, res, next) => {
   }
 };
 
+// Driver-scoped lookup keyed on the driver's MongoDB _id (used by the driver's own dashboard).
 export const getFine = async (req, res, next) => {
   try {
-    const fineId = req.params.dId;
+    const driverId = req.params.driverId;
 
-    const fine = await Fine.find({ dId: fineId });
+    const fine = await Fine.find({ driver: driverId });
+
+    if (fine.length > 0) {
+      res.status(200).json(fine);
+    } else {
+      return next(errorHandler(404, "Fine not found"));
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Human-friendly fine search by driver NIC (used by the admin/officer fine records screen).
+export const getFineByNic = async (req, res, next) => {
+  try {
+    const fine = await Fine.find({ dNic: req.params.nic });
 
     if (fine.length > 0) {
       res.status(200).json(fine);
@@ -328,9 +346,9 @@ export const getBlockFine = async (req, res, next) => {
 
 export const getUnpaidFine = async (req, res, next) => {
   try {
-    const fineId = req.params.dId;
+    const driverId = req.params.driverId;
 
-    const fine = await Fine.find({ dId: fineId, state: false });
+    const fine = await Fine.find({ driver: driverId, state: false });
 
     if (fine.length > 0) {
       res.status(200).json(fine);
@@ -344,10 +362,10 @@ export const getUnpaidFine = async (req, res, next) => {
 
 export const getblockdriverFine = async (req, res, next) => {
   try {
-    const fineId = req.params.dId;
+    const driverId = req.params.driverId;
 
     const fines = await Fine.find({
-      dId: fineId,
+      driver: driverId,
       block: true,
     });
 
@@ -446,7 +464,7 @@ export const getblockdriverFine = async (req, res, next) => {
 
 export const generateFinePDF = async (req, res, next) => {
   try {
-    const { date, pId, dId, vNo, pStation } = req.query;
+    const { date, pId, dNic, vNo, pStation } = req.query;
 
     const filter = {};
     if (date) {
@@ -457,7 +475,7 @@ export const generateFinePDF = async (req, res, next) => {
       };
     }
     if (pId) filter.pId = pId;
-    if (dId) filter.dId = dId;
+    if (dNic) filter.dNic = dNic;
     if (vNo) filter.vNo = vNo;
     if (pStation) filter.pStation = pStation;
 
@@ -522,7 +540,7 @@ export const generateFinePDF = async (req, res, next) => {
             width: 30
           })
 
-          .text("Driver ID", tableLeft + 30, tableTop + 5, {
+          .text("Driver NIC", tableLeft + 30, tableTop + 5, {
             width: 80
           })
 
@@ -599,7 +617,7 @@ export const generateFinePDF = async (req, res, next) => {
           )
 
           .text(
-              fine.dId || "-",
+              fine.dNic || "-",
               80,
               rowTop+7,
               {

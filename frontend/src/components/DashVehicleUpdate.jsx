@@ -74,7 +74,7 @@ export const DashVehicleUpdate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "vehicle-update",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         navigate("/dashboard");

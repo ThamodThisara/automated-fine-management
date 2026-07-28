@@ -61,14 +61,14 @@ export const DashDriversView = () => {
             <div className="flex flex-col sm:flex-row items-end gap-3">
               <div className="w-full sm:w-64">
                 <Label
-                  value="Search Driver by ID"
+                  value="Search Driver by NIC"
                   className="block text-sm font-medium text-cyan-700 mb-1"
                 />
                 <div className="relative">
                   <TextInput
-                    id="id"
+                    id="nic"
                     type="text"
-                    placeholder="Enter driver ID"
+                    placeholder="Enter driver NIC"
                     className="w-full pl-9"
                     onChange={(e) => setUserIdToView(e.target.value)}
                     value={userIdToView}
@@ -140,9 +140,6 @@ export const DashDriversView = () => {
                 <Table hoverable className="min-w-max">
                   <Table.Head className="bg-teal-600 text-white sticky top-0">
                     <Table.HeadCell className="px-6 py-3 text-blue-700">
-                      ID
-                    </Table.HeadCell>
-                    <Table.HeadCell className="px-6 py-3 text-blue-700">
                       Profile
                     </Table.HeadCell>
                     <Table.HeadCell className="px-6 py-3 text-blue-700">
@@ -176,9 +173,6 @@ export const DashDriversView = () => {
                         key={user._id}
                         className="hover:bg-gray-50 transition-colors"
                       >
-                        <Table.Cell className="px-6 py-4 font-medium text-gray-900">
-                          {user.id}
-                        </Table.Cell>
                         <Table.Cell className="px-6 py-4">
                           <img
                             src={user.profilePicture}
@@ -251,7 +245,7 @@ export const DashDriversView = () => {
               <p className="mt-1 text-sm text-gray-500">
                 {userIdToView
                   ? "No drivers match the search criteria"
-                  : "Search for drivers using ID"}
+                  : "Search for drivers using NIC"}
               </p>
             </div>
           )}

@@ -70,7 +70,7 @@ export const DashVehicleDelete = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "vehicle-delete",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
       }

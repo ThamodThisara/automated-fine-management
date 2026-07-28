@@ -16,6 +16,7 @@ import stationRoutes from "./routes/station.route.js";
 import notificationRoutes from "./routes/notification.route.js";
 import activityRoutes from "./routes/activity.route.js";
 
+import User from "./model/user.model.js";
 import { app, server } from "./socket/socket.js";
 import cron from "node-cron";
 import { checkFinesAndSendEmails } from "./controllers/email.controller.js";
@@ -38,6 +39,16 @@ const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGOURL);
     console.log("MongoDB Connected!");
+
+    // The User.id index changed from a plain unique index to a sparse one (id is now
+    // optional for drivers/admins). syncIndexes migrates an existing database's stale
+    // index so new driver/admin documents without an id don't collide on a null key.
+    // Best-effort: a failure here must not stop the server from starting.
+    try {
+      await User.syncIndexes();
+    } catch (indexError) {
+      console.error("User.syncIndexes() failed (non-fatal):", indexError.message);
+    }
   } catch (error) {
     console.error("MongoDB Connection Failed!", error);
     process.exit(1);

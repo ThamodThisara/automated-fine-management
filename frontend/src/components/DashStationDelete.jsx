@@ -45,7 +45,7 @@ export const DashStationDelete = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "station-delete",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
       }

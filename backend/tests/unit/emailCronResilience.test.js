@@ -54,7 +54,8 @@ const dateStringDaysAgo = (n) => daysAgo(n).toISOString().split("T")[0];
 
 const seedFine = (overrides = {}) =>
   Fine.create({
-    dId: "DRV-001",
+    driver: "DRV-001",
+    dNic: "990000000V",
     dName: "Test Driver",
     email: "driver@test.local",
     vNo: "ABC-1234",
@@ -87,8 +88,8 @@ beforeEach(async () => {
 
 describe("checkFinesAndSendReminder resilience", () => {
   it("does not throw when a send fails, and still attempts the remaining fines", async () => {
-    await seedFine({ dId: "DRV-FAIL", email: "fail@test.local" });
-    await seedFine({ dId: "DRV-OK", email: "ok@test.local" });
+    await seedFine({ driver: "DRV-FAIL", email: "fail@test.local" });
+    await seedFine({ driver: "DRV-OK", email: "ok@test.local" });
 
     let call = 0;
     mockSendMail.mockImplementation(() => {
@@ -107,13 +108,13 @@ describe("checkFinesAndSendEmails resilience", () => {
   it("does not abort the batch when one fine's email fails", async () => {
     const yesterday = new Date(dateStringDaysAgo(1));
     await seedFine({
-      dId: "DRV-FAIL",
+      driver: "DRV-FAIL",
       email: "fail@test.local",
       expireDate: yesterday,
       block: true,
     });
     await seedFine({
-      dId: "DRV-OK",
+      driver: "DRV-OK",
       email: "ok@test.local",
       expireDate: yesterday,
       block: true,

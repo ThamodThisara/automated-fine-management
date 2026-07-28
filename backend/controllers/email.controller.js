@@ -122,7 +122,7 @@ export const checkFinesAndSendEmails = async () => {
         <div class="container">
           <div class="header">
             🚨 Fine Payment Reminder <br />
-            Driver ID: ${fine.dId}
+            Driver NIC: ${fine.dNic}
           </div>
 
           <div class="content">
@@ -344,7 +344,7 @@ export const checkFinesAndSendReminder = async () => {
   <div class="header">
     🚨 Fine Payment Reminder 🚨
     <br>
-    Driver ID: ${fine.dId}
+    Driver NIC: ${fine.dNic}
   </div>
 
 

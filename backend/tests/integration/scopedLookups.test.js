@@ -16,7 +16,8 @@ const officerCookie = cookieFor({ _id: "o1", id: "OFF-001", role: "officer" });
 
 const seedFine = (overrides = {}) =>
   Fine.create({
-    dId: "DRV-001",
+    driver: "DRV-001",
+    dNic: "990000000V",
     dName: "Test Driver",
     email: "driver@test.local",
     vNo: "ABC-1234",
@@ -45,7 +46,7 @@ afterAll(async () => {
   await disconnectTestDB();
 });
 
-describe("GET /api/v1/fine/getfine/:dId", () => {
+describe("GET /api/v1/fine/getfine/:driverId", () => {
   it("returns 200 with the matching fines for a driver id that has fines", async () => {
     const res = await request(app)
       .get("/api/v1/fine/getfine/DRV-001")
@@ -71,7 +72,7 @@ describe("GET /api/v1/fine/getfineofficer/:pId", () => {
   });
 });
 
-describe("GET /api/v1/fine/getunpaidfine/:dId", () => {
+describe("GET /api/v1/fine/getunpaidfine/:driverId", () => {
   it("returns 404 for a driver id with no unpaid fines", async () => {
     const res = await request(app)
       .get("/api/v1/fine/getunpaidfine/NO-SUCH-DRIVER")
@@ -80,7 +81,7 @@ describe("GET /api/v1/fine/getunpaidfine/:dId", () => {
   });
 });
 
-describe("GET /api/v1/fine/getblockdriverfine/:dId", () => {
+describe("GET /api/v1/fine/getblockdriverfine/:driverId", () => {
   it("returns 404 when the driver has no blocked fines (the seeded fine is unblocked)", async () => {
     const res = await request(app)
       .get("/api/v1/fine/getblockdriverfine/DRV-001")

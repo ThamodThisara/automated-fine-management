@@ -31,7 +31,6 @@ export const signup = async (req, res, next) => {
     !phoneNumber ||
     !email ||
     !role ||
-    !id ||
     name == "" ||
     password == "" ||
     nic == "" ||
@@ -39,33 +38,34 @@ export const signup = async (req, res, next) => {
     address == "" ||
     phoneNumber == "" ||
     email == "" ||
-    role == "" ||
-    id == ""
+    role == ""
   ) {
     return next(errorHandler(400, "All fields are required"));
   }
 
   const bcrpytPassword = bcrpyt.hashSync(password, 9);
 
+  // Common fields shared by every role. Only officers keep a human-readable id
+  // (their official police number); drivers and admins are identified by their _id.
+  const baseUser = {
+    name,
+    password: bcrpytPassword,
+    nic,
+    dob: new Date(dob),
+    address,
+    phoneNumber,
+    email,
+    role,
+    profilePicture: req.body.profilePicture,
+  };
+
   if (role === "admin") {
     try {
-      const { pStation, profilePicture } = req.body;
+      const { pStation } = req.body;
       if (!pStation || pStation == "") {
         return next(errorHandler(400, "All fields are required"));
       }
-      const createUser = User({
-        name,
-        password: bcrpytPassword,
-        id,
-        nic,
-        dob: new Date(dob),
-        address,
-        phoneNumber,
-        email,
-        role,
-        pStation,
-        profilePicture,
-      });
+      const createUser = User({ ...baseUser, pStation });
       await createUser.save();
       res.json("Signup is successfull");
     } catch (error) {
@@ -73,24 +73,12 @@ export const signup = async (req, res, next) => {
     }
   } else if (role === "officer") {
     try {
-      const { pStation, profilePicture } = req.body;
-      if (!pStation || pStation == "") {
+      const { pStation } = req.body;
+      if (!pStation || pStation == "" || !id || id == "") {
         return next(errorHandler(400, "All fields are required"));
       }
 
-      const createUser = User({
-        name,
-        password: bcrpytPassword,
-        id,
-        nic,
-        dob: new Date(dob),
-        address,
-        phoneNumber,
-        email,
-        role,
-        pStation,
-        profilePicture,
-      });
+      const createUser = User({ ...baseUser, id, pStation });
       await createUser.save();
       res.json("Signup is successfull");
     } catch (error) {
@@ -98,24 +86,11 @@ export const signup = async (req, res, next) => {
     }
   } else if (role === "driver") {
     try {
-      const { vType, model, profilePicture } = req.body;
+      const { vType, model } = req.body;
       if (!vType || !model || vType == "" || model == "") {
         return next(errorHandler(400, "All fields are required"));
       }
-      const createUser = User({
-        name,
-        password: bcrpytPassword,
-        id,
-        nic,
-        dob: new Date(dob),
-        address,
-        phoneNumber,
-        email,
-        role,
-        vType,
-        model,
-        profilePicture,
-      });
+      const createUser = User({ ...baseUser, vType, model });
       await createUser.save();
       res.json("Signup is successfull");
     } catch (error) {

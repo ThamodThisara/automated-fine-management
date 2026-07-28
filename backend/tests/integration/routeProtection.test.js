@@ -103,7 +103,6 @@ describe("Admin can create accounts (signup with admin cookie)", () => {
         phoneNumber: "0711234567",
         email: "newdriver@test.local",
         role: "driver",
-        id: "DRV-100",
         vType: "Van",
         model: "Nissan Caravan",
       });

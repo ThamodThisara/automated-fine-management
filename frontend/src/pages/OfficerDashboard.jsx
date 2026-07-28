@@ -95,13 +95,13 @@ export const OfficerDashboard = () => {
 
     const fetchRecentActivities = async () => {
       try {
-        if (!authUser || !authUser.id) {
+        if (!authUser || !authUser._id) {
           console.error("authUser not ready yet for recent activities");
           return;
         }
 
         const res = await fetch(
-          `/api/v1/activity/recentOfficer/${authUser.id}`
+          `/api/v1/activity/recentOfficer/${authUser._id}`
         );
         const data = await res.json();
         console.log("Recent Activity Response:", data);
@@ -122,7 +122,7 @@ export const OfficerDashboard = () => {
       }
     };
 
-    if (authUser && authUser.id) {
+    if (authUser && authUser._id) {
       fetchRecentActivities(); // fetch immediately
       intervalId = setInterval(fetchRecentActivities, 5000); // fetch every 5 seconds
     }

@@ -38,10 +38,16 @@ const userSchema = new mongoose.Schema(
       unique: true,
     },
 
+    // Only officers carry a human-readable id (their official police/badge number).
+    // Drivers and admins are identified by their MongoDB _id, so id is optional for them.
+    // sparse keeps the unique index but ignores documents that have no id at all.
     id: {
       type: String,
-      required: true,
+      required: function () {
+        return this.role === "officer";
+      },
       unique: true,
+      sparse: true,
     },
 
     profilePicture: {

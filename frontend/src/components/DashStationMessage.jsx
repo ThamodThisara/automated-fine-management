@@ -26,7 +26,7 @@ export default function DashStationMessage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               action: "message-group",
-              createdBy: authUser.id,
+              createdBy: authUser._id,
             }),
           });
         }

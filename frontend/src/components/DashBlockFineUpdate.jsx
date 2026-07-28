@@ -85,7 +85,7 @@ export const DashBlockFineUpdate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "blockFine-update",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         window.location.reload();
@@ -119,7 +119,7 @@ export const DashBlockFineUpdate = () => {
             <Table hoverable className="min-w-full">
               <Table.Head className="bg-gradient-to-r from-blue-100 to-teal-100 sticky top-0">
                 <Table.HeadCell className="text-blue-800">
-                  Driver Id
+                  Driver NIC
                 </Table.HeadCell>
                 <Table.HeadCell className="text-blue-800">
                   Driver Name
@@ -163,7 +163,7 @@ export const DashBlockFineUpdate = () => {
               <Table.Body className="divide-y">
                 {fines.map((fine) => (
                   <Table.Row key={fine._id} className="hover:bg-gray-50">
-                    <Table.Cell>{fine.dId}</Table.Cell>
+                    <Table.Cell>{fine.dNic}</Table.Cell>
                     <Table.Cell>{fine.dName}</Table.Cell>
                     <Table.Cell>{fine.vNo}</Table.Cell>
                     <Table.Cell>
@@ -290,15 +290,15 @@ export const DashBlockFineUpdate = () => {
 
               <div>
                 <div className="mb-2 block">
-                  <Label value="Driver Id" />
+                  <Label value="Driver NIC" />
                 </div>
                 <TextInput
-                  id="dId"
+                  id="dNic"
                   type="text"
                   required
                   shadow
                   readOnly
-                  defaultValue={fine?.dId || ""}
+                  defaultValue={fine?.dNic || ""}
                 />
               </div>
 

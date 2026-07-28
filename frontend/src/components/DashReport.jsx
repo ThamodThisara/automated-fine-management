@@ -87,7 +87,7 @@ export default function DashReport() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "report-generate",
-          createdBy: authUser.id,
+          createdBy: authUser._id,
         }),
       });
     } catch (error) {
@@ -172,11 +172,11 @@ export default function DashReport() {
               </Select>
             </div>
 
-            {/* Driver ID */}
+            {/* Driver NIC */}
             <div>
               <Label
                 htmlFor="driver"
-                value="Driver ID"
+                value="Driver NIC"
                 className="flex items-center gap-1"
               >
                 <FiUser className="text-blue-500" /> Driver
@@ -184,10 +184,10 @@ export default function DashReport() {
               <TextInput
                 id="driver"
                 type="text"
-                placeholder="Driver ID"
-                value={formData.dId || ""}
+                placeholder="Driver NIC"
+                value={formData.dNic || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, dId: e.target.value })
+                  setFormData({ ...formData, dNic: e.target.value })
                 }
                 className="mt-1"
               />

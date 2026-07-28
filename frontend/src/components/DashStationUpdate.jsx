@@ -73,7 +73,7 @@ export const DashStationUpdate = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "station-update",
-            createdBy: authUser.id,
+            createdBy: authUser._id,
           }),
         });
         window.location.reload();
