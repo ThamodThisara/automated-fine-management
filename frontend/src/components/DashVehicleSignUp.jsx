@@ -9,10 +9,12 @@ import {
 } from "flowbite-react";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
+import { validateField } from "../utils/validators.js";
 
 export const DashVehicleSignUp = () => {
   const { authUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
+  const [submitted, setSubmitted] = useState(false);
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -20,13 +22,25 @@ export const DashVehicleSignUp = () => {
 
   const handlePhoneNumberDataChange = (e) => {
     if (e.target.value.length > 10) {
-      e.target.value = formData.phoneNumber;
-    } else {
-      setFormData({ ...formData, [e.target.id]: e.target.value });
+      return;
     }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  const hasInvalidFields = () =>
+    validateField("nic", formData?.nic) ||
+    validateField("phoneNumber", formData?.phoneNumber) ||
+    validateField("email", formData?.email);
+
+  // Only surfaces feedback (red border + message) after a submit attempt.
+  const invalid = (field) => submitted && validateField(field, formData?.[field]);
+
   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitted(true);
+    if (hasInvalidFields()) {
+      return;
+    }
     try {
       const res = await fetch("/api/v1/vehicle/create", {
         method: "POST",
@@ -138,7 +152,7 @@ export const DashVehicleSignUp = () => {
                     shadow
                     className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                     onChange={handleTextboxDataChange}
-                    placeholder="John Doe"
+                    placeholder="Thamod Thisara"
                   />
                 </div>
               </div>
@@ -156,10 +170,17 @@ export const DashVehicleSignUp = () => {
                     type="text"
                     required
                     shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className={
+                      invalid("nic")
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    }
                     onChange={handleTextboxDataChange}
                     placeholder="123456789V"
                   />
+                  {invalid("nic") && (
+                    <p className="mt-1 text-xs text-red-600">{invalid("nic")}</p>
+                  )}
                 </div>
 
                 <div>
@@ -170,15 +191,25 @@ export const DashVehicleSignUp = () => {
                   />
                   <TextInput
                     id="phoneNumber"
-                    type="number"
-                    value={formData.phoneNumber}
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.phoneNumber || ""}
                     required
                     shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className={
+                      invalid("phoneNumber")
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    }
                     onChange={handlePhoneNumberDataChange}
                     placeholder="0771234567"
                     maxLength={10}
                   />
+                  {invalid("phoneNumber") && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {invalid("phoneNumber")}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -189,13 +220,22 @@ export const DashVehicleSignUp = () => {
                   />
                   <TextInput
                     id="email"
-                    type="email"
+                    type="text"
                     required
                     shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className={
+                      invalid("email")
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    }
                     onChange={handleTextboxDataChange}
-                    placeholder="john@example.com"
+                    placeholder="thamod@example.com"
                   />
+                  {invalid("email") && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {invalid("email")}
+                    </p>
+                  )}
                 </div>
 
                 <div>

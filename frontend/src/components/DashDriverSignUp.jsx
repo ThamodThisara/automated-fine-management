@@ -19,6 +19,7 @@ import { app } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
+import { validateField } from "../utils/validators.js";
 
 export const DashDriverSignUp = () => {
   const { authUser } = useContext(AuthContext);
@@ -27,7 +28,7 @@ export const DashDriverSignUp = () => {
   const [file, setFile] = useState(null);
   const [imageUploadProgress, setImageUploadProgress] = useState(0);
   const [imageUploadError, setImageUploadError] = useState(null);
-  const [passwardError, setPasswardError] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const navigate = useNavigate();
 
@@ -73,28 +74,31 @@ export const DashDriverSignUp = () => {
 
   const handlePhoneNumberDataChange = (e) => {
     if (e.target.value.length > 10) {
-      e.target.value = formData.phoneNumber;
-    } else {
-      setFormData({ ...formData, [e.target.id]: e.target.value });
+      return;
     }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  // Always store the value; format feedback is shown inline via validateField.
   const handlePasswordDataChange = (e) => {
-    const value = e.target.value;
-
-    const hasNumber = /[0-9]/.test(value);
-    const hasSymbol = /[^A-Za-z0-9]/.test(value); // Any character not a letter or number
-
-    if (value.length < 8 || !hasNumber || !hasSymbol) {
-      setPasswardError(true);
-    } else {
-      setFormData({ ...formData, [e.target.id]: value });
-      setPasswardError(false);
-    }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+
+  const hasInvalidFields = () =>
+    validateField("nic", formData.nic) ||
+    validateField("phoneNumber", formData.phoneNumber) ||
+    validateField("email", formData.email) ||
+    validateField("password", formData.password);
+
+  // Only surfaces feedback (red border + message) after a submit attempt.
+  const invalid = (field) => submitted && validateField(field, formData?.[field]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (hasInvalidFields()) {
+      return;
+    }
     try {
       const res = await fetch(`/api/v1/auth/signup`, {
         method: "POST",
@@ -150,7 +154,7 @@ export const DashDriverSignUp = () => {
                   <TextInput
                     id="name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Thamod Thisara"
                     required
                     shadow
                     className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
@@ -169,20 +173,21 @@ export const DashDriverSignUp = () => {
                     type="password"
                     required
                     shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className={
+                      invalid("password")
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    }
                     onChange={handlePasswordDataChange}
                   />
                   <p className="mt-1 text-xs text-gray-500">
                     Minimum 8 characters with numbers and symbols
                   </p>
 
-                  {passwardError && (
-                    <Alert color="failure" icon={HiInformationCircle}>
-                      <span className="font-medium">
-                        Minimum 8 characters with numbers and symbols
-                      </span>{" "}
-                      Change a few things up and try submitting again.
-                    </Alert>
+                  {invalid("password") && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {invalid("password")}
+                    </p>
                   )}
                 </div>
 
@@ -194,12 +199,37 @@ export const DashDriverSignUp = () => {
                   />
                   <TextInput
                     id="email"
-                    type="email"
-                    placeholder="john.doe@example.com"
+                    type="text"
+                    placeholder="thamod.thisara@example.com"
                     required
                     shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className={
+                      invalid("email")
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    }
                     onChange={handleTextboxDataChange}
+                  />
+                  {invalid("email") && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {invalid("email")}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label
+                      htmlFor="address"
+                      value="Address"
+                      className="block mb-2 font-medium text-gray-700"
+                  />
+                  <TextInput
+                      id="address"
+                      type="text"
+                      required
+                      shadow
+                      className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                      onChange={handleTextboxDataChange}
                   />
                 </div>
               </div>
@@ -218,9 +248,16 @@ export const DashDriverSignUp = () => {
                     placeholder="123456789V"
                     required
                     shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className={
+                      invalid("nic")
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    }
                     onChange={handleTextboxDataChange}
                   />
+                  {invalid("nic") && (
+                    <p className="mt-1 text-xs text-red-600">{invalid("nic")}</p>
+                  )}
                 </div>
 
                 <div>
@@ -252,31 +289,25 @@ export const DashDriverSignUp = () => {
                   />
                   <TextInput
                     id="phoneNumber"
-                    type="number"
-                    value={formData.phoneNumber}
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.phoneNumber || ""}
                     placeholder="0771234567"
                     required
                     shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    className={
+                      invalid("phoneNumber")
+                        ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                        : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                    }
                     onChange={handlePhoneNumberDataChange}
                     maxLength={10}
                   />
-                </div>
-
-                <div>
-                  <Label
-                    htmlFor="address"
-                    value="Address"
-                    className="block mb-2 font-medium text-gray-700"
-                  />
-                  <TextInput
-                    id="address"
-                    type="text"
-                    required
-                    shadow
-                    className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                    onChange={handleTextboxDataChange}
-                  />
+                  {invalid("phoneNumber") && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {invalid("phoneNumber")}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

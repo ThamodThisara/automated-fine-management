@@ -1,4 +1,9 @@
 import mongoose from "mongoose";
+import {
+  PHONE_REGEX,
+  EMAIL_REGEX,
+  VALIDATION_MESSAGES,
+} from "../utils/validators.js";
 
 const complainSchema = new mongoose.Schema(
   {
@@ -10,11 +15,13 @@ const complainSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
       required: true,
+      match: [PHONE_REGEX, VALIDATION_MESSAGES.phoneNumber],
     },
 
     email: {
       type: String,
       required: true,
+      match: [EMAIL_REGEX, VALIDATION_MESSAGES.email],
     },
 
     complain: {

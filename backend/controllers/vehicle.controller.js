@@ -1,5 +1,6 @@
 import Vehicle from "../model/vehicle.model.js";
 import { errorHandler } from "../utils/error.js";
+import { normalizeNic } from "../utils/validators.js";
 
 export const vehicleCreate = async (req, res, next) => {
   const { no, cNumber, dateBrought, name, nic, phoneNumber, email, model } =
@@ -27,12 +28,14 @@ export const vehicleCreate = async (req, res, next) => {
   }
 
   try {
+    // nic/phone/email formats are enforced by the schema's match validators; NIC is
+    // normalized to its canonical uppercase form here.
     const createVehicle = Vehicle({
       no,
       cNumber,
       dateBrought: new Date(dateBrought),
       name,
-      nic,
+      nic: normalizeNic(nic),
       phoneNumber,
       email,
       model,
@@ -52,6 +55,10 @@ export const vehicleUpdate = async (req, res, next) => {
 
     if (!vehicle) {
       return next(errorHandler(404, "Vehicle not found"));
+    }
+
+    if (req.body.nic) {
+      req.body.nic = normalizeNic(req.body.nic);
     }
 
     if (req.body.no && req.body.no !== vehicle.no) {
@@ -98,7 +105,7 @@ export const vehicleUpdate = async (req, res, next) => {
           // }
           // ""
         },
-        {new:true}
+        {new:true, runValidators:true}
     );
     return res.status(200).json(updateVehicle);
   } catch(error){

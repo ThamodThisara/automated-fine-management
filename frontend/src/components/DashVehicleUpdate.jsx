@@ -9,10 +9,12 @@ import {
 } from "flowbite-react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { validateField } from "../utils/validators.js";
 
 export const DashVehicleUpdate = () => {
   const { authUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
+  const [submitted, setSubmitted] = useState(false);
 
   const [searchId, setSearchId] = useState(null);
   const [vehicle, setVehicle] = useState(null);
@@ -29,11 +31,18 @@ export const DashVehicleUpdate = () => {
 
   const handlePhoneNumberDataChange = (e) => {
     if (e.target.value.length > 10) {
-      e.target.value = formData.phoneNumber;
-    } else {
-      setFormData({ ...formData, [e.target.id]: e.target.value });
+      return;
     }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+
+  const hasInvalidFields = () =>
+    validateField("nic", formData?.nic) ||
+    validateField("phoneNumber", formData?.phoneNumber) ||
+    validateField("email", formData?.email);
+
+  // Only surfaces feedback (red border + message) after a submit attempt.
+  const invalid = (field) => submitted && validateField(field, formData?.[field]);
 
   const handleSearchVehicle = async (req, res) => {
     try {
@@ -52,6 +61,10 @@ export const DashVehicleUpdate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (hasInvalidFields()) {
+      return;
+    }
     if (Object.keys(formData).length === 0) {
       console.log("There are no changes");
       return;
@@ -256,14 +269,23 @@ export const DashVehicleUpdate = () => {
                     />
                     <TextInput
                       id="email"
-                      type="email"
+                      type="text"
                       required
                       shadow
-                      className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                      className={
+                        invalid("email")
+                          ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                      }
                       defaultValue={vehicle?.email || ""}
                       onChange={handleTextboxDataChange}
-                      placeholder="john@example.com"
+                      placeholder="thamod@example.com"
                     />
+                    {invalid("email") && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {invalid("email")}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -283,7 +305,7 @@ export const DashVehicleUpdate = () => {
                       className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                       defaultValue={vehicle?.name || ""}
                       onChange={handleTextboxDataChange}
-                      placeholder="John Doe"
+                      placeholder="Thamod Thisara"
                     />
                   </div>
 
@@ -298,11 +320,20 @@ export const DashVehicleUpdate = () => {
                       type="text"
                       required
                       shadow
-                      className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                      className={
+                        invalid("nic")
+                          ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                      }
                       defaultValue={vehicle?.nic || ""}
                       onChange={handleTextboxDataChange}
                       placeholder="123456789V"
                     />
+                    {invalid("nic") && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {invalid("nic")}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -313,16 +344,25 @@ export const DashVehicleUpdate = () => {
                     />
                     <TextInput
                       id="phoneNumber"
-                      type="number"
-                      value={formData.phoneNumber}
+                      type="text"
+                      inputMode="numeric"
                       required
                       shadow
-                      className="border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                      className={
+                        invalid("phoneNumber")
+                          ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          : "border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                      }
                       defaultValue={vehicle?.phoneNumber || ""}
                       onChange={handlePhoneNumberDataChange}
                       placeholder="0771234567"
                       maxLength={10}
                     />
+                    {invalid("phoneNumber") && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {invalid("phoneNumber")}
+                      </p>
+                    )}
                   </div>
 
                   <div>

@@ -19,11 +19,12 @@ import { app } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
+import { validateField } from "../utils/validators.js";
 
 const DashOfficerSignUp = () => {
   const [formData, setFormData] = useState({ role: "officer" });
   const { authUser } = useContext(AuthContext);
-  const [passwardError, setPasswardError] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const [file, setFile] = useState(null);
   const [imageUploadProgress, setImageUploadProgress] = useState(0);
@@ -82,30 +83,34 @@ const DashOfficerSignUp = () => {
 
   const handlePhoneNumberDataChange = (e) => {
     if (e.target.value.length > 10) {
-      e.target.value = formData.phoneNumber;
-    } else {
-      setFormData({ ...formData, [e.target.id]: e.target.value });
+      return;
     }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  // Always store the value; format feedback is shown inline via validateField.
   const handlePasswordDataChange = (e) => {
-    const value = e.target.value;
-
-    const hasNumber = /[0-9]/.test(value);
-    const hasSymbol = /[^A-Za-z0-9]/.test(value); // Any character not a letter or number
-
-    if (value.length < 8 || !hasNumber || !hasSymbol) {
-      setPasswardError(true);
-    } else {
-      setFormData({ ...formData, [e.target.id]: value });
-      setPasswardError(false);
-    }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+
+  // Blocks submit while any format-validated field holds an invalid value.
+  const hasInvalidFields = () =>
+    validateField("nic", formData.nic) ||
+    validateField("phoneNumber", formData.phoneNumber) ||
+    validateField("email", formData.email) ||
+    validateField("password", formData.password);
+
+  // Only surfaces feedback (red border + message) after a submit attempt.
+  const invalid = (field) => submitted && validateField(field, formData?.[field]);
 
   console.log(formData);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (hasInvalidFields()) {
+      return;
+    }
     try {
       const res = await fetch("/api/v1/auth/signup", {
         method: "POST",
@@ -157,7 +162,7 @@ const DashOfficerSignUp = () => {
                 <TextInput
                   id="name"
                   type="text"
-                  placeholder="John Doe"
+                  placeholder="Thamod Thisara"
                   required
                   className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   onChange={handleTextboxDataChange}
@@ -191,19 +196,20 @@ const DashOfficerSignUp = () => {
                   type="password"
                   placeholder="Create a password"
                   required
-                  className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={
+                    invalid("password")
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }
                   onChange={handlePasswordDataChange}
                 />
                 <p className="mt-1 text-xs text-gray-500">
                   Minimum 8 characters with numbers and symbols
                 </p>
-                {passwardError && (
-                  <Alert color="failure" icon={HiInformationCircle}>
-                    <span className="font-medium">
-                      Minimum 8 characters with numbers and symbols
-                    </span>{" "}
-                    Change a few things up and try submitting again.
-                  </Alert>
+                {invalid("password") && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {invalid("password")}
+                  </p>
                 )}
               </div>
 
@@ -215,12 +221,21 @@ const DashOfficerSignUp = () => {
                 />
                 <TextInput
                   id="email"
-                  type="email"
-                  placeholder="john.doe@police.gov"
+                  type="text"
+                  placeholder="thamod.thisara@police.gov"
                   required
-                  className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={
+                    invalid("email")
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }
                   onChange={handleTextboxDataChange}
                 />
+                {invalid("email") && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {invalid("email")}
+                  </p>
+                )}
               </div>
 
               {/* Date of Birth */}
@@ -254,9 +269,16 @@ const DashOfficerSignUp = () => {
                   type="text"
                   placeholder="123456789V"
                   required
-                  className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={
+                    invalid("nic")
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }
                   onChange={handleTextboxDataChange}
                 />
+                {invalid("nic") && (
+                  <p className="mt-1 text-xs text-red-600">{invalid("nic")}</p>
+                )}
               </div>
 
               {/* Phone Number */}
@@ -268,13 +290,23 @@ const DashOfficerSignUp = () => {
                 <TextInput
                   id="phoneNumber"
                   placeholder="0771234567"
-                  type="number"
-                  value={formData.phoneNumber}
+                  type="text"
+                  inputMode="numeric"
+                  value={formData.phoneNumber || ""}
                   required
-                  className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className={
+                    invalid("phoneNumber")
+                      ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  }
                   onChange={handlePhoneNumberDataChange}
                   maxLength={10}
                 />
+                {invalid("phoneNumber") && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {invalid("phoneNumber")}
+                  </p>
+                )}
               </div>
 
               {/* Police Station */}

@@ -17,9 +17,11 @@ import {
 } from "firebase/storage";
 import { app } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { validateField } from "../utils/validators.js";
 
 export const Contact = () => {
   const [formData, setFormData] = useState({});
+  const [submitted, setSubmitted] = useState(false);
   const [stations, setStations] = useState([]);
   const [stationEmail, setStationEmail] = useState("");
   const [stationNumber, setStationNumber] = useState("");
@@ -80,14 +82,24 @@ export const Contact = () => {
 
   const handlePhoneNumberDataChange = (e) => {
     if (e.target.value.length > 10) {
-      e.target.value = formData.phoneNumber;
-    } else {
-      setFormData({ ...formData, [e.target.id]: e.target.value });
+      return;
     }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+
+  const hasInvalidFields = () =>
+    validateField("phoneNumber", formData?.phoneNumber) ||
+    validateField("email", formData?.email);
+
+  // Only surfaces feedback (red border + message) after a submit attempt.
+  const invalid = (field) => submitted && validateField(field, formData?.[field]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true);
+    if (hasInvalidFields()) {
+      return;
+    }
     try {
       const res = await fetch(`/api/v1/complain/complainadd`, {
         method: "POST",
@@ -166,13 +178,13 @@ export const Contact = () => {
                 {
                   id: "phoneNumber",
                   label: "Phone Number",
-                  type: "tel",
+                  type: "text",
                   placeholder: "Enter your phone number",
                 },
                 {
                   id: "email",
                   label: "Email",
-                  type: "email",
+                  type: "text",
                   placeholder: "name@example.com",
                 },
               ].map((field) => (
@@ -185,11 +197,28 @@ export const Contact = () => {
                   <TextInput
                     id={field.id}
                     type={field.type}
+                    inputMode={
+                      field.id === "phoneNumber" ? "numeric" : undefined
+                    }
+                    maxLength={field.id === "phoneNumber" ? 10 : undefined}
                     placeholder={field.placeholder}
                     required
-                    className="w-full rounded-lg border-cyan-200 dark:border-gray-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:bg-gray-600 dark:text-white transition-all duration-300"
-                    onChange={handleTextboxDataChange}
+                    className={
+                      invalid(field.id)
+                        ? "w-full rounded-lg border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:bg-gray-600 dark:text-white transition-all duration-300"
+                        : "w-full rounded-lg border-cyan-200 dark:border-gray-600 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 dark:bg-gray-600 dark:text-white transition-all duration-300"
+                    }
+                    onChange={
+                      field.id === "phoneNumber"
+                        ? handlePhoneNumberDataChange
+                        : handleTextboxDataChange
+                    }
                   />
+                  {invalid(field.id) && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {invalid(field.id)}
+                    </p>
+                  )}
                 </div>
               ))}
 

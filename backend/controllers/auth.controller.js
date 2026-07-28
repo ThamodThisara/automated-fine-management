@@ -2,6 +2,11 @@ import User from "../model/user.model.js";
 import bcrpyt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { errorHandler } from "../utils/error.js";
+import {
+  isValidPassword,
+  normalizeNic,
+  VALIDATION_MESSAGES,
+} from "../utils/validators.js";
 
 // Signs a JWT for the given user and sets it as an HttpOnly cookie.
 const setAuthCookie = (res, user) => {
@@ -43,14 +48,22 @@ export const signup = async (req, res, next) => {
     return next(errorHandler(400, "All fields are required"));
   }
 
+  // Password strength is validated on the plaintext here, before it is hashed —
+  // a schema validator would only ever see the bcrypt hash.
+  if (!isValidPassword(password)) {
+    return next(errorHandler(400, VALIDATION_MESSAGES.password));
+  }
+
   const bcrpytPassword = bcrpyt.hashSync(password, 9);
 
   // Common fields shared by every role. Only officers keep a human-readable id
   // (their official police number); drivers and admins are identified by their _id.
+  // NIC is normalized to its canonical uppercase form; nic/phone/email formats are
+  // enforced by the schema's match validators.
   const baseUser = {
     name,
     password: bcrpytPassword,
-    nic,
+    nic: normalizeNic(nic),
     dob: new Date(dob),
     address,
     phoneNumber,

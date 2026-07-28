@@ -1,4 +1,10 @@
 import mongoose from "mongoose";
+import {
+  NIC_REGEX,
+  PHONE_REGEX,
+  EMAIL_REGEX,
+  VALIDATION_MESSAGES,
+} from "../utils/validators.js";
 
 const vehicleShema = new mongoose.Schema({
   no: {
@@ -26,16 +32,20 @@ const vehicleShema = new mongoose.Schema({
   nic: {
     type: String,
     required: true,
+    uppercase: true,
+    match: [NIC_REGEX, VALIDATION_MESSAGES.nic],
   },
 
   phoneNumber: {
     type: String,
     required: true,
+    match: [PHONE_REGEX, VALIDATION_MESSAGES.phoneNumber],
   },
 
   email: {
     type: String,
     required: true,
+    match: [EMAIL_REGEX, VALIDATION_MESSAGES.email],
   },
 
   model: {

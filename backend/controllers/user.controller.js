@@ -1,10 +1,25 @@
 import User from "../model/user.model.js";
 import bcrypt from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
+import {
+  isValidPassword,
+  normalizeNic,
+  VALIDATION_MESSAGES,
+} from "../utils/validators.js";
 
 export const userUpdate = async (req, res, next) => {
+  // Password is optional on update (blank = keep current). Only validate/hash it
+  // when a new one was actually supplied — and validate the plaintext before hashing.
   if (req.body.password) {
+    if (!isValidPassword(req.body.password)) {
+      return next(errorHandler(400, VALIDATION_MESSAGES.password));
+    }
     req.body.password = bcrypt.hashSync(req.body.password, 10);
+  }
+
+  // Normalize NIC to its canonical uppercase form before it hits the schema validators.
+  if (req.body.nic) {
+    req.body.nic = normalizeNic(req.body.nic);
   }
 
   try {
@@ -63,7 +78,7 @@ export const userUpdate = async (req, res, next) => {
     const updated = await User.findByIdAndUpdate(
       user._id,
       { $set: updateFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
     const { password: pass, ...rest } = updated._doc;
     res.status(200).json(rest);
