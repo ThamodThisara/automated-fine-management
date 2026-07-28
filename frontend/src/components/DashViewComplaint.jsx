@@ -83,7 +83,7 @@ export default function DashViewComplaint() {
                             className="w-52 h-52 object-cover  border-2 border-cyan-200"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = "https://via.placeholder.com/40";
+                              e.target.src = "/default-avatar.jpg";
                             }}
                           />
                         </Table.Cell>

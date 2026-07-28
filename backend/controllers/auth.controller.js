@@ -7,6 +7,7 @@ import {
   normalizeNic,
   VALIDATION_MESSAGES,
 } from "../utils/validators.js";
+import { PROFILES_URL } from "../middleware/upload.js";
 
 // Signs a JWT for the given user and sets it as an HttpOnly cookie.
 const setAuthCookie = (res, user) => {
@@ -69,7 +70,9 @@ export const signup = async (req, res, next) => {
     phoneNumber,
     email,
     role,
-    profilePicture: req.body.profilePicture,
+    // Multer stored the uploaded picture locally; save only its served path.
+    // When no file is sent, leave it unset so the schema's default avatar applies.
+    profilePicture: req.file ? `${PROFILES_URL}/${req.file.filename}` : undefined,
   };
 
   if (role === "admin") {

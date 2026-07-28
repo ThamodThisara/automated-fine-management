@@ -9,13 +9,6 @@ import {
   FileInput,
   Alert,
 } from "flowbite-react";
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { app } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
@@ -25,8 +18,6 @@ export const DashDriverUpdate = () => {
   const [formData, setFormData] = useState();
   const { authUser } = useContext(AuthContext);
   const [file, setFile] = useState(null);
-  const [imageUploadProgress, setImageUploadProgress] = useState(0);
-  const [imageUploadError, setImageUploadError] = useState(null);
   const [searchId, setSearchId] = useState(null);
   const [user, setUser] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
@@ -34,41 +25,11 @@ export const DashDriverUpdate = () => {
 
   const navigate = useNavigate();
 
-  const handleUploadImage = async () => {
-    try {
-      if (!file) {
-        setImageUploadError("Plese select the image");
-        return;
-      }
-      setImageUploadError(null);
-      const storage = getStorage(app);
-      const fileName = new Date().getTime() + "-" + file.name;
-      const storageRef = ref(storage, fileName);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setImageUploadProgress(progress.toFixed(0));
-        },
-        (error) => {
-          setImageUploadError("Image upload failed");
-          setImageUploadProgress(0);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageUrl(downloadURL);
-            setImageUploadProgress(0);
-            setImageUploadError(null);
-            setFormData({ ...formData, profilePicture: downloadURL });
-          });
-        }
-      );
-    } catch (error) {
-      setImageUploadError("Image upload failed");
-      setImageUploadProgress(0);
-    }
+  // Shows a local preview of the newly-picked image; the file itself is uploaded on submit.
+  const handleFileSelect = (e) => {
+    const selected = e.target.files[0];
+    setFile(selected);
+    setImageUrl(selected ? URL.createObjectURL(selected) : null);
   };
 
   const handleTextboxDataChange = (e) => {
@@ -124,20 +85,22 @@ export const DashDriverUpdate = () => {
     if (hasInvalidFields()) {
       return;
     }
-    if (Object.keys(formData).length === 0) {
+    if ((!formData || Object.keys(formData).length === 0) && !file) {
       console.log("There are no changes");
       return;
     }
 
-    if (imageUploadProgress) {
-      console.log("Please wait for uploading image");
-      return;
-    }
     try {
+      // Send changed text fields + any newly-selected image as multipart/form-data.
+      const body = new FormData();
+      Object.entries(formData || {}).forEach(([key, value]) =>
+        body.append(key, value)
+      );
+      if (file) body.append("profilePicture", file);
+
       const res = await fetch(`/api/v1/user/update/${user._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body,
       });
       console.log(res);
       const data = await res.json();
@@ -469,51 +432,13 @@ export const DashDriverUpdate = () => {
                   value="Update Profile Picture"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 />
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                  <FileInput
-                    id="file-upload-helper-text"
-                    type="file"
-                    className="w-full border-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                    onChange={(e) => setFile(e.target.files[0])}
-                  />
-                  <Button
-                    type="button"
-                    gradientDuoTone="cyanToBlue"
-                    size="sm"
-                    outline
-                    onClick={handleUploadImage}
-                    className="transition-all hover:scale-[1.02] active:scale-95"
-                  >
-                    {imageUploadProgress > 0 ? (
-                      <span className="flex items-center gap-2">
-                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        Uploading ({imageUploadProgress}%)
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                          />
-                        </svg>
-                        Upload Image
-                      </span>
-                    )}
-                  </Button>
-                </div>
-                {imageUploadError && (
-                  <Alert color="failure" className="mt-3">
-                    {imageUploadError}
-                  </Alert>
-                )}
+                <FileInput
+                  id="file-upload-helper-text"
+                  type="file"
+                  accept="image/*"
+                  className="w-full border-gray-300 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                  onChange={handleFileSelect}
+                />
               </div>
 
               {/* Submit Button */}
@@ -522,32 +447,22 @@ export const DashDriverUpdate = () => {
                   type="submit"
                   gradientDuoTone="tealToBlue"
                   className="w-full py-3 font-medium text-lg transition-all hover:scale-[1.01] active:scale-95"
-                  disabled={
-                    imageUploadProgress >= 1 && imageUploadProgress <= 99
-                  }
                 >
-                  {imageUploadProgress >= 1 && imageUploadProgress <= 99 ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                      Updating Profile...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Update Driver Profile
-                    </span>
-                  )}
+                  <span className="flex items-center justify-center gap-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Update Driver Profile
+                  </span>
                 </Button>
               </div>
             </form>

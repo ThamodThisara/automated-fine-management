@@ -9,13 +9,6 @@ import {
   FileInput,
   Alert,
 } from "flowbite-react";
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { app } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
@@ -27,8 +20,6 @@ export default function DashAdminSignUp() {
   const [submitted, setSubmitted] = useState(false);
 
   const [file, setFile] = useState(null);
-  const [imageUploadProgress, setImageUploadProgress] = useState(0);
-  const [imageUploadError, setImageUploadError] = useState(null);
   const [stations, setStations] = useState([]);
   const navigate = useNavigate();
 
@@ -40,42 +31,6 @@ export default function DashAdminSignUp() {
     };
     fetchValues();
   }, []);
-
-  const handleUploadImage = async () => {
-    try {
-      if (!file) {
-        setImageUploadError("Plese select the image");
-        return;
-      }
-      setImageUploadError(null);
-      const storage = getStorage(app);
-      const fileName = new Date().getTime() + "-" + file.name;
-      const storageRef = ref(storage, fileName);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setImageUploadProgress(progress.toFixed(0));
-        },
-        (error) => {
-          setImageUploadError("Image upload failed");
-          setImageUploadProgress(0);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageUploadProgress(0);
-            setImageUploadError(null);
-            setFormData({ ...formData, profilePicture: downloadURL });
-          });
-        }
-      );
-    } catch (error) {
-      setImageUploadError("Image upload failed");
-      setImageUploadProgress(0);
-    }
-  };
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -109,10 +64,16 @@ export default function DashAdminSignUp() {
       return;
     }
     try {
+      // Send the whole form (text fields + the selected image) as multipart/form-data.
+      const body = new FormData();
+      Object.entries(formData).forEach(([key, value]) =>
+        body.append(key, value)
+      );
+      if (file) body.append("profilePicture", file);
+
       const res = await fetch("/api/v1/auth/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body,
       });
       const data = await res.json();
       if (res.ok) {
@@ -332,51 +293,13 @@ export default function DashAdminSignUp() {
                   value="Profile Picture"
                   className="block text-sm font-medium text-gray-700 mb-1"
                 />
-                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                  <FileInput
-                    id="file-upload-helper-text"
-                    type="file"
-                    className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    onChange={(e) => setFile(e.target.files[0])}
-                  />
-                  <Button
-                    type="button"
-                    gradientDuoTone="purpleToBlue"
-                    size="sm"
-                    outline
-                    onClick={handleUploadImage}
-                    className="transition-all hover:scale-[1.02] active:scale-95"
-                  >
-                    {imageUploadProgress > 0 ? (
-                      <span className="flex items-center gap-2">
-                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                        Uploading ({imageUploadProgress}%)
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                          />
-                        </svg>
-                        Upload Image
-                      </span>
-                    )}
-                  </Button>
-                </div>
-                {imageUploadError && (
-                  <Alert color="failure" className="mt-3">
-                    {imageUploadError}
-                  </Alert>
-                )}
+                <FileInput
+                  id="file-upload-helper-text"
+                  type="file"
+                  accept="image/*"
+                  className="border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
               </div>
             </div>
 
@@ -386,30 +309,22 @@ export default function DashAdminSignUp() {
                 type="submit"
                 gradientDuoTone="tealToBlue"
                 className="w-full py-3 font-medium text-lg transition-all hover:scale-[1.01] active:scale-95"
-                disabled={imageUploadProgress >= 1 && imageUploadProgress <= 99}
               >
-                {imageUploadProgress >= 1 && imageUploadProgress <= 99 ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                    Processing...
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Register Admin
-                  </span>
-                )}
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Register Admin
+                </span>
               </Button>
             </div>
           </form>

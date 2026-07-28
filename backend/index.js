@@ -17,6 +17,7 @@ import notificationRoutes from "./routes/notification.route.js";
 import activityRoutes from "./routes/activity.route.js";
 
 import User from "./model/user.model.js";
+import { UPLOADS_ROOT } from "./middleware/upload.js";
 import { app, server } from "./socket/socket.js";
 import cron from "node-cron";
 import { checkFinesAndSendEmails } from "./controllers/email.controller.js";
@@ -75,6 +76,10 @@ app.use(
     credentials: true,
   })
 );
+
+// Serve locally-stored uploaded images (profile pictures, complaint evidence).
+// A DB path like "/uploads/profiles/123-driver.jpg" maps to <UPLOADS_ROOT>/profiles/123-driver.jpg.
+app.use("/uploads", express.static(UPLOADS_ROOT));
 
 //routes
 app.use("/api/v1/auth", authRoutes);

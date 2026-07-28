@@ -192,7 +192,7 @@ export const DashOfficersView = () => {
                             className="h-10 w-10 rounded-full object-cover ring-2 ring-blue-500 dark:ring-blue-400"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = "https://via.placeholder.com/40";
+                              e.target.src = "/default-avatar.jpg";
                             }}
                           />
                         </div>

@@ -9,13 +9,6 @@ import {
   FileInput,
   Alert,
 } from "flowbite-react";
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { app } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { validateField } from "../utils/validators.js";
 
@@ -27,8 +20,6 @@ export const Contact = () => {
   const [stationNumber, setStationNumber] = useState("");
 
   const [file, setFile] = useState(null);
-  const [imageUploadProgress, setImageUploadProgress] = useState(0);
-  const [imageUploadError, setImageUploadError] = useState(null);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -39,42 +30,6 @@ export const Contact = () => {
     };
     fetchValues();
   }, []);
-
-  const handleUploadImage = async () => {
-    try {
-      if (!file) {
-        setImageUploadError("Plese select the image");
-        return;
-      }
-      setImageUploadError(null);
-      const storage = getStorage(app);
-      const fileName = new Date().getTime() + "-" + file.name;
-      const storageRef = ref(storage, fileName);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress =
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          setImageUploadProgress(progress.toFixed(0));
-        },
-        (error) => {
-          setImageUploadError("Image upload failed");
-          setImageUploadProgress(0);
-        },
-        () => {
-          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-            setImageUploadProgress(0);
-            setImageUploadError(null);
-            setFormData({ ...formData, image: downloadURL });
-          });
-        }
-      );
-    } catch (error) {
-      setImageUploadError("Image upload failed");
-      setImageUploadProgress(0);
-    }
-  };
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -101,10 +56,16 @@ export const Contact = () => {
       return;
     }
     try {
+      // Send the complaint (text fields + the selected evidence image) as multipart/form-data.
+      const body = new FormData();
+      Object.entries(formData).forEach(([key, value]) =>
+        body.append(key, value)
+      );
+      if (file) body.append("image", file);
+
       const res = await fetch(`/api/v1/complain/complainadd`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body,
       });
       const data = await res.json();
       console.log(res);
@@ -244,78 +205,23 @@ export const Contact = () => {
                   value="Upload Evidence"
                   className="text-cyan-700 dark:text-cyan-300 font-medium mb-2 flex items-center"
                 />
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                  <FileInput
-                    id="file-upload"
-                    helperText="Upload relevant images (JPG, PNG, max 5MB)"
-                    className="w-full rounded-lg border-cyan-200 dark:border-gray-600 focus:ring-cyan-500 focus:border-cyan-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 transition-all duration-300"
-                    onChange={(e) => setFile(e.target.files[0])}
-                  />
-                  <Button
-                    type="button"
-                    gradientDuoTone="purpleToBlue"
-                    size="md"
-                    pill
-                    onClick={handleUploadImage}
-                    className="w-full sm:w-auto transition-all duration-300 transform hover:scale-105"
-                  >
-                    Upload Image
-                  </Button>
-                </div>
-                {imageUploadProgress > 0 && imageUploadProgress < 100 && (
-                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 dark:bg-gray-600">
-                    <div
-                      className="bg-cyan-600 h-2.5 rounded-full"
-                      style={{ width: `${imageUploadProgress}%` }}
-                    ></div>
-                  </div>
-                )}
+                <FileInput
+                  id="file-upload"
+                  accept="image/*"
+                  helperText="Upload relevant images (JPG, PNG, max 5MB)"
+                  className="w-full rounded-lg border-cyan-200 dark:border-gray-600 focus:ring-cyan-500 focus:border-cyan-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 transition-all duration-300"
+                  onChange={(e) => setFile(e.target.files[0])}
+                />
               </div>
-
-              {/* Error Message */}
-              {imageUploadError && (
-                <Alert color="failure" className="mt-2">
-                  <span className="font-medium">Error!</span> {imageUploadError}
-                </Alert>
-              )}
 
               {/* Submit Button */}
               <div className="pt-2">
                 <Button
                   type="submit"
-                  disabled={
-                    imageUploadProgress > 0 && imageUploadProgress < 100
-                  }
                   gradientDuoTone="tealToBlue"
                   className="w-full py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-md hover:shadow-lg"
                 >
-                  {imageUploadProgress > 0 && imageUploadProgress < 100 ? (
-                    <span className="flex items-center justify-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Uploading ({imageUploadProgress}%)
-                    </span>
-                  ) : (
-                    "Submit Complaint"
-                  )}
+                  Submit Complaint
                 </Button>
               </div>
             </form>

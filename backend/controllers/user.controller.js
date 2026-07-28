@@ -6,6 +6,7 @@ import {
   normalizeNic,
   VALIDATION_MESSAGES,
 } from "../utils/validators.js";
+import { PROFILES_URL } from "../middleware/upload.js";
 
 export const userUpdate = async (req, res, next) => {
   // Password is optional on update (blank = keep current). Only validate/hash it
@@ -55,7 +56,11 @@ export const userUpdate = async (req, res, next) => {
       address: req.body.address,
       phoneNumber: req.body.phoneNumber,
       email: req.body.email,
-      profilePicture: req.body.profilePicture,
+      // A new upload replaces the picture; with no file the field stays undefined so
+      // Mongoose leaves the existing profilePicture untouched.
+      profilePicture: req.file
+        ? `${PROFILES_URL}/${req.file.filename}`
+        : undefined,
     };
 
     let updateFields;

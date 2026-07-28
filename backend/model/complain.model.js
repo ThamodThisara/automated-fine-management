@@ -37,7 +37,8 @@ const complainSchema = new mongoose.Schema(
     image: {
       type: String,
       required: true,
-      default: "https://sephorainfo.com/images/complaints.png",
+      // Local default (served from the frontend's public/ folder) so it works offline.
+      default: "/default-complaint.png",
     },
   },
   { timestamps: true }

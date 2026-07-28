@@ -62,8 +62,8 @@ const userSchema = new mongoose.Schema(
 
     profilePicture: {
       type: String,
-      default:
-        "https://static.vecteezy.com/system/resources/thumbnails/002/318/271/small/user-profile-icon-free-vector.jpg",
+      // Local default avatar (served from the frontend's public/ folder) so it works offline.
+      default: "/default-avatar.jpg",
     },
 
     role: {

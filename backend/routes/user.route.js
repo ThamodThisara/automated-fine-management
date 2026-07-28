@@ -12,6 +12,7 @@ import {
   deleteAdmin,
 } from "../controllers/user.controller.js";
 import { verifyToken, verifyRole } from "../middleware/verifyToken.js";
+import { profileUpload } from "../middleware/upload.js";
 
 const router = express.Router();
 
@@ -20,7 +21,12 @@ const router = express.Router();
 router.get("/getuser/:nic", verifyToken, getUser);
 router.get("/getofficer/:id", verifyToken, getOfficer);
 router.get("/getadmin/:nic", verifyToken, getAdmin);
-router.put("/update/:userId", verifyToken, userUpdate);
+router.put(
+  "/update/:userId",
+  verifyToken,
+  profileUpload.single("profilePicture"),
+  userUpdate
+);
 router.get("/getallofficers", verifyToken, getAllOfficers);
 router.get("/getalldrivers", verifyToken, getAllDrivers);
 

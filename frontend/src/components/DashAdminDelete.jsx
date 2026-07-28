@@ -211,7 +211,7 @@ export default function DashAdminDelete() {
                             className="w-10 h-10 object-cover rounded-full border-2 border-cyan-200"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = "https://via.placeholder.com/40";
+                              e.target.src = "/default-avatar.jpg";
                             }}
                           />
                         </Table.Cell>

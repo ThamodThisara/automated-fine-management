@@ -73,7 +73,7 @@ export function Header() {
       <Navbar.Brand href="https://flowbite-react.com">
         <NavLink to="/">
           <img
-            src="https://png.pngtree.com/png-vector/20220226/ourmid/pngtree-policeman-fine-icon-punish-concept-notification-vector-png-image_16152142.jpg"
+            src="/logo.jpg"
             className="mr-3 h-8 sm:h-10 transition-transform duration-300 transform hover:scale-110"
             alt="Logo"
           />

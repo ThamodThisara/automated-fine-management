@@ -9,6 +9,11 @@ export default defineConfig({
         target: "http://localhost:3000",
         secure: false,
       },
+      // Locally-stored uploaded images are served by the backend under /uploads.
+      "/uploads": {
+        target: "http://localhost:3000",
+        secure: false,
+      },
     },
   },
   plugins: [react()],
