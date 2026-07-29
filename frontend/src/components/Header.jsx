@@ -43,21 +43,21 @@ export function Header() {
 
   // Dynamic Popover content (re-renders when `notifications` changes)
   const content = (
-    <div className="w-96 text-sm text-gray-500 dark:text-gray-400">
+    <div className="w-[calc(100vw-2rem)] max-w-xs sm:w-72 text-sm text-gray-500 dark:text-gray-400">
       <div className="border-b border-gray-200 bg-gray-100 px-3 py-2 dark:border-gray-600 dark:bg-gray-700">
         <h3 className="font-semibold text-gray-900 dark:text-white">
           Notification
         </h3>
       </div>
       {notifications.length >= 1 ? (
-        notifications.map((notifi) => (
-          <div key={notifi._id} className="px-3 py-2 flex justify-between">
-            {" "}
-            {/* Add `key`! */}
-            <p>{notifi.type}</p>
-            <p>{notifi.price}</p>
-          </div>
-        ))
+        <div className="max-h-80 overflow-y-auto">
+          {notifications.map((notifi) => (
+            <div key={notifi._id} className="px-3 py-2 flex justify-between gap-2">
+              <p className="truncate">{notifi.type}</p>
+              <p className="shrink-0">{notifi.price}</p>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="px-3 py-2">No notifications yet.</div>
       )}
@@ -68,7 +68,7 @@ export function Header() {
     <Navbar
       fluid
       rounded
-      className="top-0 z-10 bg-gradient-to-r from-teal-500 to-cyan-500 shadow-lg"
+      className="top-0 z-10 bg-gradient-to-r from-teal-500 to-cyan-500 shadow-lg px-4 sm:px-6 lg:px-8"
     >
       <Navbar.Brand href="https://flowbite-react.com">
         <NavLink to="/">
@@ -148,12 +148,12 @@ export function Header() {
           Contact Us
         </NavLink>
 
-        <Popover content={content} placement="bottom">
+        <Popover content={content} placement="bottom-end">
           <div className="flex cursor-pointer">
             <IoMdNotificationsOutline className="w-6 h-6 text-white" />
             <div className="relative">
               {/* <Badge className="justify-center absolute w-3 h-3 p-1 bg-red-400 text-white animate-ping">5</Badge> */}
-              <span class="absolute w-2 h-2 p-1 animate-ping rounded-full bg-red-500 opacity-100"></span>
+              <span className="absolute w-2 h-2 p-1 animate-ping rounded-full bg-red-500 opacity-100"></span>
             </div>
           </div>
         </Popover>
