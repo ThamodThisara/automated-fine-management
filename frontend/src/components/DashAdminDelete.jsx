@@ -7,7 +7,7 @@ import { AuthContext } from "../context/AuthContext";
 export default function DashAdminDelete() {
   const { authUser } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
-  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
   const [userIdToDelete, setUserIdToDelete] = useState("");
   const [showModal, setShowModal] = useState(false);
 
@@ -21,7 +21,8 @@ export default function DashAdminDelete() {
           setUsers(data);
         }
       } catch (error) {
-        setError(error);
+        console.log(error);
+        setStatus({ type: "failure", message: "Failed to load admins." });
       }
     };
     if (userIdToDelete === "") {
@@ -32,48 +33,47 @@ export default function DashAdminDelete() {
   const getDeleteUser = async () => {
     try {
       if (userIdToDelete === "") {
-        return setError("Fill Serach field");
+        return setStatus({ type: "failure", message: "Fill search field" });
       }
       const res = await fetch(`/api/v1/user/getadmin/${userIdToDelete}`);
       const data = await res.json();
-      if (data.success == false) {
-        return setError(data.messaage);
+      if (!res.ok) {
+        return setStatus({ type: "failure", message: data.message || "Admin not found." });
       }
-      if (res.ok) {
-        setUsers([data]);
-        setError("");
-      }
+      setUsers([data]);
+      setStatus(null);
     } catch (error) {
-      setError(error);
+      console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
   const handleDeleteUser = async () => {
     setShowModal(false);
     try {
-      console.log(userIdToDelete);
-
       const res = await fetch(`/api/v1/user/delete-admin/${userIdToDelete}`, {
         method: "DELETE",
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.messaage);
-      } else {
-        setError(data.messaage);
-        setUserIdToDelete("");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "admin-delete",
-            createdBy: authUser._id,
-          }),
-        });
+        setStatus({ type: "failure", message: data.message || "Failed to delete admin." });
+        return;
       }
+
+      setStatus({ type: "success", message: typeof data === "string" ? data : "Admin deleted successfully." });
+      setUserIdToDelete("");
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "admin-delete",
+          createdBy: authUser._id,
+        }),
+      });
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -144,12 +144,14 @@ export default function DashAdminDelete() {
           </div>
         </div>
 
-        {/* Error Message */}
-        {error && (
+        {/* Status Message */}
+        {status && (
           <div className="px-6">
             <Alert
-              color="failure"
-              className="rounded-lg border-l-4 border-red-500"
+              color={status.type === "success" ? "success" : "failure"}
+              className={`rounded-lg border-l-4 ${
+                status.type === "success" ? "border-green-500" : "border-red-500"
+              }`}
               withBorderAccent
             >
               <div className="flex items-center">
@@ -165,7 +167,7 @@ export default function DashAdminDelete() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="font-medium">{error}</span>
+                <span className="font-medium">{status.message}</span>
               </div>
             </Alert>
           </div>

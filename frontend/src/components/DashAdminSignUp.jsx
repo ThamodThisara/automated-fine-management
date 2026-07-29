@@ -9,7 +9,6 @@ import {
   FileInput,
   Alert,
 } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
 import { validateField } from "../utils/validators.js";
@@ -18,10 +17,10 @@ export default function DashAdminSignUp() {
   const [formData, setFormData] = useState({ role: "admin" });
   const { authUser } = useContext(AuthContext);
   const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState(null);
 
   const [file, setFile] = useState(null);
   const [stations, setStations] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchValues = async () => {
@@ -76,19 +75,34 @@ export default function DashAdminSignUp() {
         body,
       });
       const data = await res.json();
-      if (res.ok) {
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "admin-create",
-            createdBy: authUser._id,
-          }),
+
+      if (!res.ok) {
+        setStatus({
+          type: "failure",
+          message: data.message || "Failed to register admin.",
         });
-        navigate("/dashboard");
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "admin-create",
+          createdBy: authUser._id,
+        }),
+      });
+      setStatus({
+        type: "success",
+        message: typeof data === "string" ? data : "Admin registered successfully.",
+      });
+      e.target.reset();
+      setFormData({ role: "admin" });
+      setFile(null);
+      setSubmitted(false);
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -109,6 +123,11 @@ export default function DashAdminSignUp() {
         {/* Registration Form */}
         <div className="p-6 sm:p-8">
           <form className="space-y-5" onSubmit={handleSubmit}>
+            {status && (
+              <Alert color={status.type === "success" ? "success" : "failure"}>
+                <span className="font-medium">{status.message}</span>
+              </Alert>
+            )}
             {/* Grid layout for form fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* Name */}

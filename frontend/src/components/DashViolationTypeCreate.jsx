@@ -14,12 +14,14 @@ import { AuthContext } from "../context/AuthContext";
 export const DashViolationTypeCreate = () => {
   const { authUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
+  const [status, setStatus] = useState(null);
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       const res = await fetch("/api/v1/violation/add", {
         method: "POST",
@@ -27,25 +29,31 @@ export const DashViolationTypeCreate = () => {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log(res);
 
-      if (res.ok) {
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "violationType-create",
-            createdBy: authUser._id,
-          }),
+      if (!res.ok) {
+        setStatus({
+          type: "failure",
+          message: data.message || "Failed to add violation rule.",
         });
-        Navigate("/dashboard");
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "violationType-create",
+          createdBy: authUser._id,
+        }),
+      });
+      setStatus({ type: "success", message: "Violation rule added successfully." });
+      e.target.reset();
+      setFormData({});
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
-
-  console.log(formData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -63,6 +71,11 @@ export const DashViolationTypeCreate = () => {
         {/* Form Card */}
         <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
           <form className="p-6 sm:p-8 space-y-6" onSubmit={handleSubmit}>
+            {status && (
+              <Alert color={status.type === "success" ? "success" : "failure"}>
+                <span className="font-medium">{status.message}</span>
+              </Alert>
+            )}
             {/* Violation Type */}
             <div>
               <Label

@@ -7,6 +7,7 @@ export const DashStationUpdate = () => {
   const { authUser } = useContext(AuthContext);
   const [stations, setStations] = useState([]);
   const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({});
   const [searchId, setSearchId] = useState(null);
@@ -34,6 +35,7 @@ export const DashStationUpdate = () => {
 
   const handleSearchStation = async (sId) => {
     try {
+      setStatus(null);
       setSearchId(sId);
       await fetch(`/api/v1/station/get/${sId}`).then(async (res) => {
         if (!res.ok) {
@@ -66,20 +68,25 @@ export const DashStationUpdate = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.message);
-      } else {
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "station-update",
-            createdBy: authUser._id,
-          }),
-        });
-        window.location.reload();
+        setStatus({ type: "failure", message: data.message || "Failed to update station." });
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "station-update",
+          createdBy: authUser._id,
+        }),
+      });
+      setStation(data);
+      setStations((prev) => prev.map((s) => (s._id === data._id ? data : s)));
+      setStatus({ type: "success", message: "Station updated successfully." });
+      setFormData({});
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -157,6 +164,11 @@ export const DashStationUpdate = () => {
         <Modal.Body className="p-6">
           {station && (
             <form className="space-y-6">
+              {status && (
+                <Alert color={status.type === "success" ? "success" : "failure"}>
+                  <span className="font-medium">{status.message}</span>
+                </Alert>
+              )}
               {/* Station Name */}
               <div>
                 <Label

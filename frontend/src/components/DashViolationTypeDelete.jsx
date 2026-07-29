@@ -2,13 +2,12 @@ import React, { useContext } from "react";
 import { Alert, Button, Label, Modal, Table, TextInput } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 export const DashViolationTypeDelete = () => {
   const { authUser } = useContext(AuthContext);
   const [violations, setViolations] = useState([]);
-  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
   const [violationIdToDelete, setViolationIdToDelete] = useState("");
   const [showModal, setShowModal] = useState(false);
 
@@ -22,7 +21,8 @@ export const DashViolationTypeDelete = () => {
           setViolations(data);
         }
       } catch (error) {
-        setError(error);
+        console.log(error);
+        setStatus({ type: "failure", message: "Failed to load violation rules." });
       }
     };
     if (violationIdToDelete === "") {
@@ -33,29 +33,26 @@ export const DashViolationTypeDelete = () => {
   const getDeleteViolation = async () => {
     try {
       if (violationIdToDelete === "") {
-        return setError("Fill Serach field");
+        return setStatus({ type: "failure", message: "Fill search field" });
       }
       const res = await fetch(
         `/api/v1/violation/getrule/${violationIdToDelete}`
       );
       const data = await res.json();
-      if (data.success == false) {
-        return setError(data.messaage);
+      if (!res.ok) {
+        return setStatus({ type: "failure", message: data.message || "Violation rule not found." });
       }
-      if (res.ok) {
-        setViolations([data]);
-        setError("");
-      }
+      setViolations([data]);
+      setStatus(null);
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
   const handleDeleteViolation = async () => {
     setShowModal(false);
     try {
-      console.log(violationIdToDelete);
-
       const res = await fetch(
         `/api/v1/violation/delete/${violationIdToDelete}`,
         {
@@ -65,22 +62,23 @@ export const DashViolationTypeDelete = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.messaage);
-      } else {
-        setError(data.messaage);
-        setViolationIdToDelete("");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "violationType-delete",
-            createdBy: authUser._id,
-          }),
-        });
-        console.log(violationIdToDelete);
+        setStatus({ type: "failure", message: data.message || "Failed to delete violation rule." });
+        return;
       }
+
+      setStatus({ type: "success", message: typeof data === "string" ? data : "Violation rule deleted successfully." });
+      setViolationIdToDelete("");
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "violationType-delete",
+          createdBy: authUser._id,
+        }),
+      });
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -158,10 +156,10 @@ export const DashViolationTypeDelete = () => {
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert color="failure" className="max-w-3xl mx-auto mb-6">
-          <span className="font-medium">Error!</span> {error}
+      {/* Status Alert */}
+      {status && (
+        <Alert color={status.type === "success" ? "success" : "failure"} className="max-w-3xl mx-auto mb-6">
+          <span className="font-medium">{status.type === "success" ? "Success!" : "Error!"}</span> {status.message}
         </Alert>
       )}
 

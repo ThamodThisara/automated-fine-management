@@ -6,7 +6,7 @@ import { AuthContext } from "../context/AuthContext";
 export const DashStationDelete = () => {
   const { authUser } = useContext(AuthContext);
   const [stations, setStations] = useState([]);
-  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
   const [stationIdToDelete, setStationIdToDelete] = useState("");
   const [showModal, setShowModal] = useState(false);
 
@@ -20,7 +20,8 @@ export const DashStationDelete = () => {
           setStations(data);
         }
       } catch (error) {
-        setError(error);
+        console.log(error);
+        setStatus({ type: "failure", message: "Failed to load stations." });
       }
     };
     if (stationIdToDelete === "") {
@@ -37,20 +38,23 @@ export const DashStationDelete = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.message);
-      } else {
-        setStationIdToDelete("");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "station-delete",
-            createdBy: authUser._id,
-          }),
-        });
+        setStatus({ type: "failure", message: data.message || "Failed to delete station." });
+        return;
       }
+
+      setStatus({ type: "success", message: typeof data === "string" ? data : "Station deleted successfully." });
+      setStationIdToDelete("");
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "station-delete",
+          createdBy: authUser._id,
+        }),
+      });
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -64,10 +68,10 @@ export const DashStationDelete = () => {
         <p className="text-gray-600">Manage and remove police stations</p>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert color="failure" className="max-w-3xl mx-auto mb-6">
-          <span className="font-medium">Error!</span> {error}
+      {/* Status Alert */}
+      {status && (
+        <Alert color={status.type === "success" ? "success" : "failure"} className="max-w-3xl mx-auto mb-6">
+          <span className="font-medium">{status.type === "success" ? "Success!" : "Error!"}</span> {status.message}
         </Alert>
       )}
 

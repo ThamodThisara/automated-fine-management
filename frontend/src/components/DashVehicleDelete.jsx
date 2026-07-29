@@ -7,7 +7,7 @@ import { AuthContext } from "../context/AuthContext";
 export const DashVehicleDelete = () => {
   const { authUser } = useContext(AuthContext);
   const [vehicles, setVehicles] = useState([]);
-  const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
   const [vehicleIdToDelete, setVehicleIdToDelete] = useState("");
   const [showModal, setShowModal] = useState(false);
 
@@ -21,7 +21,8 @@ export const DashVehicleDelete = () => {
           setVehicles(data);
         }
       } catch (error) {
-        setError(error);
+        console.log(error);
+        setStatus({ type: "failure", message: "Failed to load vehicles." });
       }
     };
     if (vehicleIdToDelete === "") {
@@ -32,50 +33,49 @@ export const DashVehicleDelete = () => {
   const getDeleteVehicle = async () => {
     try {
       if (vehicleIdToDelete === "") {
-        return setError("Fill Serach field");
+        return setStatus({ type: "failure", message: "Fill search field" });
       }
       const res = await fetch(
         `/api/v1/vehicle/getvehicle/${vehicleIdToDelete}`
       );
       const data = await res.json();
-      if (data.success == false) {
-        return setError(data.messaage);
+      if (!res.ok) {
+        return setStatus({ type: "failure", message: data.message || "Vehicle not found." });
       }
-      if (res.ok) {
-        setVehicles([data]);
-        setError("");
-      }
+      setVehicles([data]);
+      setStatus(null);
     } catch (error) {
-      setError(error);
+      console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
   const handleDeleteVehicle = async () => {
     setShowModal(false);
     try {
-      console.log(vehicleIdToDelete);
-
       const res = await fetch(`/api/v1/vehicle/delete/${vehicleIdToDelete}`, {
         method: "DELETE",
       });
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.messaage);
-      } else {
-        setError(data.messaage);
-        setVehicleIdToDelete("");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "vehicle-delete",
-            createdBy: authUser._id,
-          }),
-        });
+        setStatus({ type: "failure", message: data.message || "Failed to delete vehicle." });
+        return;
       }
+
+      setStatus({ type: "success", message: typeof data === "string" ? data : "Vehicle deleted successfully." });
+      setVehicleIdToDelete("");
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "vehicle-delete",
+          createdBy: authUser._id,
+        }),
+      });
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -150,10 +150,10 @@ export const DashVehicleDelete = () => {
         </div>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert color="failure" className="max-w-3xl mx-auto mb-6">
-          <span className="font-medium">Error!</span> {error}
+      {/* Status Alert */}
+      {status && (
+        <Alert color={status.type === "success" ? "success" : "failure"} className="max-w-3xl mx-auto mb-6">
+          <span className="font-medium">{status.type === "success" ? "Success!" : "Error!"}</span> {status.message}
         </Alert>
       )}
 

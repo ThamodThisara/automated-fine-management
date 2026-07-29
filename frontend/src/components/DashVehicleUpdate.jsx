@@ -6,8 +6,8 @@ import {
   TextInput,
   Datepicker,
   Select,
+  Alert,
 } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { validateField } from "../utils/validators.js";
 
@@ -15,11 +15,10 @@ export const DashVehicleUpdate = () => {
   const { authUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState(null);
 
   const [searchId, setSearchId] = useState(null);
   const [vehicle, setVehicle] = useState(null);
-
-  const navigate = useNavigate();
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -79,27 +78,30 @@ export const DashVehicleUpdate = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        console.log(data);
-      } else {
-        console.log("Update is success");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "vehicle-update",
-            createdBy: authUser._id,
-          }),
+        setStatus({
+          type: "failure",
+          message: data.message || "Failed to update vehicle.",
         });
-        navigate("/dashboard");
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "vehicle-update",
+          createdBy: authUser._id,
+        }),
+      });
+      setVehicle(data);
+      setStatus({ type: "success", message: "Vehicle updated successfully." });
+      setFormData({});
+      setSubmitted(false);
     } catch (error) {
       console.log("error here");
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
-
-  console.log(searchId);
-  console.log(formData);
-  console.log(vehicle);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -202,6 +204,11 @@ export const DashVehicleUpdate = () => {
             </div>
 
             <form className="p-6 sm:p-8 space-y-6" onSubmit={handleSubmit}>
+              {status && (
+                <Alert color={status.type === "success" ? "success" : "failure"}>
+                  <span className="font-medium">{status.message}</span>
+                </Alert>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Left Column */}
                 <div className="space-y-5">

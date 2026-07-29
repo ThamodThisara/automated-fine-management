@@ -9,7 +9,6 @@ import {
   FileInput,
   Alert,
 } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
 import { validateField } from "../utils/validators.js";
@@ -20,8 +19,7 @@ export const DashDriverSignUp = () => {
 
   const [file, setFile] = useState(null);
   const [submitted, setSubmitted] = useState(false);
-
-  const navigate = useNavigate();
+  const [status, setStatus] = useState(null);
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -68,25 +66,36 @@ export const DashDriverSignUp = () => {
         body,
       });
       const data = await res.json();
-      console.log(res);
 
-      if (res.ok) {
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "driver-create",
-            createdBy: authUser._id,
-          }),
+      if (!res.ok) {
+        setStatus({
+          type: "failure",
+          message: data.message || "Failed to register driver.",
         });
-        window.location.href = "/dashboard";
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "driver-create",
+          createdBy: authUser._id,
+        }),
+      });
+      setStatus({
+        type: "success",
+        message: typeof data === "string" ? data : "Driver registered successfully.",
+      });
+      e.target.reset();
+      setFormData({ role: "driver" });
+      setFile(null);
+      setSubmitted(false);
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
-
-  console.log(formData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -104,6 +113,11 @@ export const DashDriverSignUp = () => {
         {/* Form Section */}
         <div className="p-6 sm:p-8">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {status && (
+              <Alert color={status.type === "success" ? "success" : "failure"}>
+                <span className="font-medium">{status.message}</span>
+              </Alert>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Personal Information Column */}
               <div className="space-y-5">

@@ -9,7 +9,6 @@ import {
   FileInput,
   Alert,
 } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
 import { validateField } from "../utils/validators.js";
@@ -22,8 +21,7 @@ export default function DashAdminUpdate() {
   const [user, setUser] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [submitted, setSubmitted] = useState(false);
-
-  const navigate = useNavigate();
+  const [status, setStatus] = useState(null);
 
   // Shows a local preview of the newly-picked image; the file itself is uploaded on submit.
   const handleFileSelect = (e) => {
@@ -102,25 +100,33 @@ export default function DashAdminUpdate() {
         method: "PUT",
         body,
       });
-      console.log(res);
       const data = await res.json();
-      console.log(data);
+
       if (!res.ok) {
-        console.log("error");
-      } else {
-        console.log("Update is success");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "Admin-update",
-            createdBy: authUser._id,
-          }),
+        setStatus({
+          type: "failure",
+          message: data.message || "Failed to update admin.",
         });
-        navigate("/dashboard");
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "Admin-update",
+          createdBy: authUser._id,
+        }),
+      });
+      setUser(data);
+      setStatus({ type: "success", message: "Admin updated successfully." });
+      setFormData({ role: "admin" });
+      setFile(null);
+      setImageUrl(null);
+      setSubmitted(false);
     } catch (error) {
       console.log("error here");
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -203,6 +209,11 @@ export default function DashAdminUpdate() {
         <div className="p-6 sm:p-8">
           {user && (
             <form className="space-y-5" onSubmit={handleSubmit}>
+              {status && (
+                <Alert color={status.type === "success" ? "success" : "failure"}>
+                  <span className="font-medium">{status.message}</span>
+                </Alert>
+              )}
               {/* Profile Picture */}
               <div className="flex flex-col items-center mb-6">
                 <div className="relative">

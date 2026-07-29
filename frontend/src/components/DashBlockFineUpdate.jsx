@@ -2,13 +2,13 @@ import React, { useContext } from "react";
 import { Alert, Button, Label, Modal, Table, TextInput } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 export const DashBlockFineUpdate = () => {
   const { authUser } = useContext(AuthContext);
   const [fines, setFines] = useState([]);
   const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
   const [fineIdToUpdate, setFineIdToUpdate] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -37,13 +37,9 @@ export const DashBlockFineUpdate = () => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleClose = () => {
-    setShowModal(false);
-    window.location.reload();
-  };
-
   const handleSearchFine = async (id) => {
     try {
+      setStatus(null);
       setSearchId(id);
       await fetch(`/api/v1/fine/getblockfine/${id}`).then(async (res) => {
         if (!res.ok) {
@@ -77,21 +73,28 @@ export const DashBlockFineUpdate = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        console.log(data);
-      } else {
-        console.log("Update is success");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "blockFine-update",
-            createdBy: authUser._id,
-          }),
-        });
-        window.location.reload();
+        setStatus({ type: "failure", message: data.message || "Failed to update fine." });
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "blockFine-update",
+          createdBy: authUser._id,
+        }),
+      });
+      setFine(data);
+      // This view only lists blocked fines — if the update cleared the block, it should drop out of the list.
+      setFines((prev) =>
+        data.block ? prev.map((f) => (f._id === data._id ? data : f)) : prev.filter((f) => f._id !== data._id)
+      );
+      setStatus({ type: "success", message: "Fine updated successfully." });
+      setFormData({});
     } catch (error) {
       console.log("error here");
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -273,6 +276,11 @@ export const DashBlockFineUpdate = () => {
         <Modal.Body className="p-6 overflow-y-auto max-h-[70vh]">
           {fine && (
             <form className="space-y-4">
+              {status && (
+                <Alert color={status.type === "success" ? "success" : "failure"}>
+                  <span className="font-medium">{status.message}</span>
+                </Alert>
+              )}
               {/* Your existing form fields exactly as you have them */}
               <div>
                 <div className="mb-2 block">

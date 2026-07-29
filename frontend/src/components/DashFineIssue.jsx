@@ -9,11 +9,9 @@ import {
   FileInput,
   Alert,
 } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 export const DashFineIssue = () => {
-  const navigate = useNavigate();
   const { authUser } = useContext(AuthContext);
   const [officer, setOfficer] = useState(
     JSON.parse(localStorage.getItem("user"))
@@ -23,6 +21,7 @@ export const DashFineIssue = () => {
   const [driverNic, setDriverNic] = useState(null);
   const [driver, setDriver] = useState(null);
   const [driverError, setDriverError] = useState(null);
+  const [status, setStatus] = useState(null);
 
   const [formData, setFormData] = useState({
     pId: officer.id,
@@ -97,25 +96,36 @@ export const DashFineIssue = () => {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log(res);
 
-      if (res.ok) {
-        await fetch("/api/v1/activity/addOfficer", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "fine-issue",
-            createdBy: authUser._id,
-          }),
-        });
-        navigate("/officerDashboard");
+      if (!res.ok) {
+        setStatus({ type: "failure", message: data.message || "Failed to issue fine." });
+        return;
       }
+
+      await fetch("/api/v1/activity/addOfficer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "fine-issue",
+          createdBy: authUser._id,
+        }),
+      });
+      setStatus({ type: "success", message: "Fine issued successfully." });
+      e.target.reset();
+      setDriver(null);
+      setDriverNic(null);
+      setDriverError(null);
+      setSelectedRule(null);
+      setFormData({
+        pId: officer.id,
+        pName: officer.name,
+        pStation: officer.pStation,
+      });
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
-
-  console.log(formData);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -133,6 +143,11 @@ export const DashFineIssue = () => {
         {/* Form Section */}
         <div className="p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {status && (
+              <Alert color={status.type === "success" ? "success" : "failure"}>
+                <span className="font-medium">{status.message}</span>
+              </Alert>
+            )}
             {/* Driver Information Section */}
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">

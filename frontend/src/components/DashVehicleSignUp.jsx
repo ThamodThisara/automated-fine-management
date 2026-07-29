@@ -6,6 +6,7 @@ import {
   TextInput,
   Datepicker,
   Select,
+  Alert,
 } from "flowbite-react";
 import { AuthContext } from "../context/AuthContext";
 import { HiInformationCircle } from "react-icons/hi";
@@ -15,6 +16,7 @@ export const DashVehicleSignUp = () => {
   const { authUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState(null);
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -48,25 +50,36 @@ export const DashVehicleSignUp = () => {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      console.log(res);
 
-      if (res.ok) {
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "vehicle-create",
-            createdBy: authUser._id,
-          }),
+      if (!res.ok) {
+        setStatus({
+          type: "failure",
+          message: data.message || "Failed to register vehicle.",
         });
-        window.location.href = "/dashboard";
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "vehicle-create",
+          createdBy: authUser._id,
+        }),
+      });
+      setStatus({
+        type: "success",
+        message: typeof data === "string" ? data : "Vehicle registered successfully.",
+      });
+      e.target.reset();
+      setFormData({});
+      setSubmitted(false);
     } catch (error) {
       console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
-  console.log(formData);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
@@ -81,6 +94,11 @@ export const DashVehicleSignUp = () => {
         {/* Form Card */}
         <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
           <form className="p-6 sm:p-8 space-y-6" onSubmit={handleSubmit}>
+            {status && (
+              <Alert color={status.type === "success" ? "success" : "failure"}>
+                <span className="font-medium">{status.message}</span>
+              </Alert>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column */}
               <div className="space-y-5">

@@ -1,13 +1,11 @@
 import React, { useContext, useState } from "react";
 import { Alert, Button, Label, TextInput } from "flowbite-react";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 export const DashStationCreate = () => {
   const { authUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [status, setStatus] = useState(null);
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -15,7 +13,6 @@ export const DashStationCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
     try {
       const res = await fetch("/api/v1/station/add", {
         method: "POST",
@@ -24,21 +21,25 @@ export const DashStationCreate = () => {
       });
       const data = await res.json();
 
-      if (res.ok) {
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "station-create",
-            createdBy: authUser._id,
-          }),
-        });
-        navigate("/dashboard");
-      } else {
-        setError(data.message || "Failed to create station");
+      if (!res.ok) {
+        setStatus({ type: "failure", message: data.message || "Failed to create station" });
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "station-create",
+          createdBy: authUser._id,
+        }),
+      });
+      setStatus({ type: "success", message: "Station added successfully." });
+      e.target.reset();
+      setFormData({});
     } catch (error) {
-      setError("Something went wrong. Please try again.");
+      console.log(error);
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -58,9 +59,9 @@ export const DashStationCreate = () => {
         {/* Form Card */}
         <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
           <form className="p-6 sm:p-8 space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <Alert color="failure">
-                <span className="font-medium">Error!</span> {error}
+            {status && (
+              <Alert color={status.type === "success" ? "success" : "failure"}>
+                <span className="font-medium">{status.type === "success" ? "Success!" : "Error!"}</span> {status.message}
               </Alert>
             )}
 

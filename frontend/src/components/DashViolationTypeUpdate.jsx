@@ -2,21 +2,19 @@ import React, { useContext } from "react";
 import { Alert, Button, Label, Modal, Table, TextInput } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 export const DashViolationTypeUpdate = () => {
   const { authUser } = useContext(AuthContext);
   const [violations, setViolations] = useState([]);
   const [error, setError] = useState(null);
+  const [status, setStatus] = useState(null);
   const [violationIdToUpdate, setViolationIdToUpdate] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({});
   const [searchId, setSearchId] = useState(null);
   const [violation, setViolation] = useState(null);
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchVioation = async () => {
@@ -36,11 +34,6 @@ export const DashViolationTypeUpdate = () => {
     }
   }, [violationIdToUpdate]);
 
-  const handleClose = () => {
-    setShowModal(false);
-    window.location.reload();
-  };
-
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -51,6 +44,7 @@ export const DashViolationTypeUpdate = () => {
 
   const handleSearchVehicle = async (vId) => {
     try {
+      setStatus(null);
       setSearchId(vId);
       await fetch(`/api/v1/violation/getrule/${vId}`).then(async (res) => {
         if (!res.ok) {
@@ -86,21 +80,28 @@ export const DashViolationTypeUpdate = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        console.log(data);
-      } else {
-        console.log("Update is success");
-        await fetch("/api/v1/activity/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "violationType-update",
-            createdBy: authUser._id,
-          }),
+        setStatus({
+          type: "failure",
+          message: data.message || "Failed to update violation rule.",
         });
-        window.location.reload();
+        return;
       }
+
+      await fetch("/api/v1/activity/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "violationType-update",
+          createdBy: authUser._id,
+        }),
+      });
+      setViolation(data);
+      setViolations((prev) => prev.map((v) => (v._id === data._id ? data : v)));
+      setStatus({ type: "success", message: "Violation rule updated successfully." });
+      setFormData({});
     } catch (error) {
       console.log("error here");
+      setStatus({ type: "failure", message: "Something went wrong. Please try again." });
     }
   };
 
@@ -230,6 +231,11 @@ export const DashViolationTypeUpdate = () => {
         <Modal.Body className="p-6">
           {violation && (
             <form className="space-y-6">
+              {status && (
+                <Alert color={status.type === "success" ? "success" : "failure"}>
+                  <span className="font-medium">{status.message}</span>
+                </Alert>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Violation ID */}
                 <div>
