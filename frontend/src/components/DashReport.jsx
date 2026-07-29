@@ -1,6 +1,5 @@
 import {
   Button,
-  Datepicker,
   Label,
   Select,
   TextInput,
@@ -74,7 +73,16 @@ export default function DashReport() {
       );
 
       if (!response.ok) {
-        throw new Error(response.statusText || "Failed to generate PDF");
+        // Surface the backend's real reason (e.g. "No fines found with the
+        // specified filters") instead of a bare "Not Found".
+        let message = "Failed to generate report. Please try again.";
+        try {
+          const errorBody = await response.json();
+          if (errorBody?.message) message = errorBody.message;
+        } catch {
+          // Non-JSON error body — keep the generic message.
+        }
+        throw new Error(message);
       }
 
       // Create blob URL for viewing
@@ -156,7 +164,6 @@ export default function DashReport() {
               </Label>
               <Select
                 id="officer"
-                required
                 onChange={(e) =>
                   setFormData({ ...formData, pId: e.target.value })
                 }
@@ -214,29 +221,6 @@ export default function DashReport() {
               />
             </div>
 
-            {/* Date */}
-            <div>
-              <Label value="Date" className="flex items-center gap-1">
-                <FiCalendar className="text-blue-500" /> Date
-              </Label>
-              <Datepicker
-                required
-                defaultDate={new Date()}
-                onSelectedDateChanged={(d) => {
-                  const date =
-                    d.getFullYear() +
-                    "-" +
-                    (d.getMonth() + 1) +
-                    "-" +
-                    d.getDate();
-                  setFormData({ ...formData, date: date });
-                }}
-                className="mt-1"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Police Station */}
             <div>
               <Label
@@ -248,7 +232,6 @@ export default function DashReport() {
               </Label>
               <Select
                 id="station"
-                required
                 onChange={(e) =>
                   setFormData({ ...formData, pStation: e.target.value })
                 }
@@ -262,6 +245,50 @@ export default function DashReport() {
                   </option>
                 ))}
               </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* From Date */}
+            <div>
+              <Label
+                htmlFor="fromDate"
+                value="From Date"
+                className="flex items-center gap-1"
+              >
+                <FiCalendar className="text-blue-500" /> From Date
+              </Label>
+              <TextInput
+                id="fromDate"
+                type="date"
+                value={formData.fromDate || ""}
+                max={formData.toDate || undefined}
+                onChange={(e) =>
+                  setFormData({ ...formData, fromDate: e.target.value })
+                }
+                className="mt-1"
+              />
+            </div>
+
+            {/* To Date */}
+            <div>
+              <Label
+                htmlFor="toDate"
+                value="To Date"
+                className="flex items-center gap-1"
+              >
+                <FiCalendar className="text-blue-500" /> To Date
+              </Label>
+              <TextInput
+                id="toDate"
+                type="date"
+                value={formData.toDate || ""}
+                min={formData.fromDate || undefined}
+                onChange={(e) =>
+                  setFormData({ ...formData, toDate: e.target.value })
+                }
+                className="mt-1"
+              />
             </div>
 
             {/* Action Buttons */}
@@ -297,6 +324,11 @@ export default function DashReport() {
               )}
             </div>
           </div>
+
+          <p className="mt-3 text-xs text-gray-500">
+            Leave any filter blank to include all values. Leave both dates blank
+            to cover all dates, or set only one for an open-ended range.
+          </p>
         </div>
 
         {/* PDF Viewer Section */}

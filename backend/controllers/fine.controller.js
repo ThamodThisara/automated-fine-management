@@ -1,5 +1,6 @@
 import Fine from "../model/fine.model.js";
 import { errorHandler } from "../utils/error.js";
+import { normalizeNic } from "../utils/validators.js";
 import { sendEmail } from "./email.controller.js";
 import PDFDocument from "pdfkit";
 
@@ -464,26 +465,74 @@ export const getblockdriverFine = async (req, res, next) => {
 
 export const generateFinePDF = async (req, res, next) => {
   try {
-    const { date, pId, dNic, vNo, pStation } = req.query;
+    const { date, fromDate, toDate, pId, dNic, vNo, pStation } = req.query;
+
+    // issueDate is stored as UTC midnight of the issue day (fineIssue writes a
+    // "YYYY-MM-DD" string that Mongoose casts as UTC), so the range bounds are
+    // built in UTC too — otherwise the report drifts by a day across timezones.
+    const parseDay = (value) => {
+      const parsed = new Date(value);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    };
+
+    // `date` (a single day) is still honoured so older links keep working; it simply
+    // acts as both ends of the range.
+    const startInput = fromDate || date;
+    const endInput = toDate || date;
 
     const filter = {};
-    if (date) {
-      const selectedDate = new Date(date);
+    if (startInput || endInput) {
+      filter.issueDate = {};
 
-      filter.issueDate = {
-        $gte: selectedDate,
-      };
+      if (startInput) {
+        const start = parseDay(startInput);
+        if (!start) {
+          return next(errorHandler(400, "Invalid 'from' date."));
+        }
+        filter.issueDate.$gte = start;
+      }
+
+      if (endInput) {
+        const end = parseDay(endInput);
+        if (!end) {
+          return next(errorHandler(400, "Invalid 'to' date."));
+        }
+        // Exclusive upper bound on the next day so the whole end day is included.
+        end.setUTCDate(end.getUTCDate() + 1);
+        filter.issueDate.$lt = end;
+      }
+
+      if (
+        filter.issueDate.$gte &&
+        filter.issueDate.$lt &&
+        filter.issueDate.$gte >= filter.issueDate.$lt
+      ) {
+        return next(
+          errorHandler(400, "The 'from' date must be on or before the 'to' date.")
+        );
+      }
     }
+
     if (pId) filter.pId = pId;
-    if (dNic) filter.dNic = dNic;
+    // NICs are stored uppercase, so normalize before matching or a lowercase
+    // "912345678v" would silently return no results.
+    if (dNic) filter.dNic = normalizeNic(dNic);
     if (vNo) filter.vNo = vNo;
     if (pStation) filter.pStation = pStation;
 
     const fines = await Fine.find(filter);
 
     if (fines.length === 0) {
+      // Distinguish "nothing recorded yet" from "your filters matched nothing" —
+      // otherwise an empty database reads as a filter problem.
+      const hasFilters = Object.keys(filter).length > 0;
       return next(
-          errorHandler(404, "No fines found with the specified filters")
+          errorHandler(
+              404,
+              hasFilters
+                  ? "No fines found for the selected filters."
+                  : "There are no fines recorded in the system yet."
+          )
       );
     }
 
@@ -574,7 +623,29 @@ export const generateFinePDF = async (req, res, next) => {
               align:"center"
             }
         );
-    doc.moveDown(2);
+    doc.moveDown(0.5);
+
+    // State the applied filters on the report itself, so a printed copy is
+    // unambiguous about which period and criteria it covers.
+    const summary = [
+      `Period: ${
+        startInput || endInput
+            ? `${startInput || "earliest"} to ${endInput || "latest"}`
+            : "All dates"
+      }`,
+    ];
+    if (pId) summary.push(`Officer: ${pId}`);
+    if (dNic) summary.push(`Driver NIC: ${normalizeNic(dNic)}`);
+    if (vNo) summary.push(`Vehicle: ${vNo}`);
+    if (pStation) summary.push(`Station: ${pStation}`);
+
+    doc
+        .fillColor("#7f8c8d")
+        .fontSize(9)
+        .font("Helvetica")
+        .text(summary.join("   |   "), { align: "center" });
+
+    doc.moveDown(1.5);
 
     let rowTop = drawTableHeader();
 
