@@ -23,6 +23,9 @@ import { DashDriverSignUp } from "../components/DashDriverSignUp";
 import { DashDriverUpdate } from "../components/DashDriverUpdate";
 import { DashDriverDelete } from "../components/DashDriverDelete";
 import { DashDriversView } from "../components/DashDriversView";
+import { DashVehicleSignUp } from "../components/DashVehicleSignUp";
+import { DashVehicleUpdate } from "../components/DashVehicleUpdate";
+import { DashVehicleDelete } from "../components/DashVehicleDelete";
 import { DashVehiclesView } from "../components/DashVehiclesView";
 import { DashFineView } from "../components/DashFineView";
 import { DashGroupMessage } from "../components/DashGroupMessage";
@@ -147,6 +150,9 @@ export const OfficerDashboard = () => {
       "driver-update": "Update Driver Records",
       "driver-delete": "Delete Driver Records",
       "vehicle-view": "Vehicle Registry",
+      "vehicle-create": "Register New Vehicle",
+      "vehicle-update": "Update Vehicle Records",
+      "vehicle-delete": "Delete Vehicle Records",
       all: "Message Center",
       "message-group": "Group Messages",
     };
@@ -280,6 +286,29 @@ export const OfficerDashboard = () => {
                   <Link to="/officerdashboard?dash=driver-delete">
                     <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
                       {!collapsed && "Delete Driver"}
+                    </Sidebar.Item>
+                  </Link>
+                </Sidebar.Collapse>
+
+                {/* Manage Vehicle */}
+                <Sidebar.Collapse
+                  icon={HiTruck}
+                  label={!collapsed && "Manage Vehicle"}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                >
+                  <Link to="/officerdashboard?dash=vehicle-create">
+                    <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Add Vehicle"}
+                    </Sidebar.Item>
+                  </Link>
+                  <Link to="/officerdashboard?dash=vehicle-update">
+                    <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Update Vehicle"}
+                    </Sidebar.Item>
+                  </Link>
+                  <Link to="/officerdashboard?dash=vehicle-delete">
+                    <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Delete Vehicle"}
                     </Sidebar.Item>
                   </Link>
                 </Sidebar.Collapse>
@@ -423,6 +452,15 @@ export const OfficerDashboard = () => {
                 )) ||
                 (searchParams.get("dash") === "vehicle-view" && (
                   <DashVehiclesView />
+                )) ||
+                (searchParams.get("dash") === "vehicle-create" && (
+                  <DashVehicleSignUp />
+                )) ||
+                (searchParams.get("dash") === "vehicle-update" && (
+                  <DashVehicleUpdate />
+                )) ||
+                (searchParams.get("dash") === "vehicle-delete" && (
+                  <DashVehicleDelete />
                 )) ||
                 (searchParams.get("dash") === "all" && <DashGroupMessage />) ||
                 (searchParams.get("dash") === "message-group" && (
