@@ -31,6 +31,15 @@ export const userUpdate = async (req, res, next) => {
       return next(errorHandler(404, "User not found"));
     }
 
+    // Everyone may edit their own profile; admins may edit anyone; officers
+    // are scoped to driver accounts only (they can't touch other officers/admins).
+    const isSelf = String(req.user._id) === String(user._id);
+    const isAdmin = req.user.role === "admin";
+    const isOfficerManagingDriver = req.user.role === "officer" && user.role === "driver";
+    if (!isSelf && !isAdmin && !isOfficerManagingDriver) {
+      return next(errorHandler(403, "Forbidden. You do not have permission to update this account."));
+    }
+
     if (req.body.email) {
       if (user.email !== req.body.email) {
         const existEmail = await User.findOne({ email: req.body.email });

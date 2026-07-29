@@ -34,6 +34,7 @@ router.get("/getalldrivers", verifyToken, getAllDrivers);
 router.get("/getalladmins", verifyToken, verifyRole("admin"), getAllAdmins);
 router.delete("/delete-officer/:id", verifyToken, verifyRole("admin"), deleteOfficer);
 router.delete("/delete-admin/:id", verifyToken, verifyRole("admin"), deleteAdmin);
-router.delete("/delete-driver/:id", verifyToken, verifyRole("admin"), deleteDriver);
+// Officers may delete drivers too (deleteDriver already rejects non-driver targets).
+router.delete("/delete-driver/:id", verifyToken, verifyRole("admin", "officer"), deleteDriver);
 
 export default router;

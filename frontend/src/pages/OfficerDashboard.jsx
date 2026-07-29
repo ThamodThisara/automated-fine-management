@@ -19,6 +19,9 @@ import {
   HiUser,
 } from "react-icons/hi";
 import { DashFineIssue } from "../components/DashFineIssue";
+import { DashDriverSignUp } from "../components/DashDriverSignUp";
+import { DashDriverUpdate } from "../components/DashDriverUpdate";
+import { DashDriverDelete } from "../components/DashDriverDelete";
 import { DashDriversView } from "../components/DashDriversView";
 import { DashVehiclesView } from "../components/DashVehiclesView";
 import { DashFineView } from "../components/DashFineView";
@@ -140,6 +143,9 @@ export const OfficerDashboard = () => {
       "fine-view": "Fine Records",
       "block-view": "Block Fine Records",
       "driver-view": "Driver Database",
+      "driver-create": "Register New Driver",
+      "driver-update": "Update Driver Records",
+      "driver-delete": "Delete Driver Records",
       "vehicle-view": "Vehicle Registry",
       all: "Message Center",
       "message-group": "Group Messages",
@@ -251,6 +257,29 @@ export const OfficerDashboard = () => {
                   <Link to="/officerdashboard?dash=fine-view">
                     <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
                       {!collapsed && "View Fines"}
+                    </Sidebar.Item>
+                  </Link>
+                </Sidebar.Collapse>
+
+                {/* Manage Driver */}
+                <Sidebar.Collapse
+                  icon={HiUsers}
+                  label={!collapsed && "Manage Driver"}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                >
+                  <Link to="/officerdashboard?dash=driver-create">
+                    <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Add Driver"}
+                    </Sidebar.Item>
+                  </Link>
+                  <Link to="/officerdashboard?dash=driver-update">
+                    <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Update Driver"}
+                    </Sidebar.Item>
+                  </Link>
+                  <Link to="/officerdashboard?dash=driver-delete">
+                    <Sidebar.Item className="hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      {!collapsed && "Delete Driver"}
                     </Sidebar.Item>
                   </Link>
                 </Sidebar.Collapse>
@@ -382,6 +411,15 @@ export const OfficerDashboard = () => {
                 )) ||
                 (searchParams.get("dash") === "driver-view" && (
                   <DashDriversView />
+                )) ||
+                (searchParams.get("dash") === "driver-create" && (
+                  <DashDriverSignUp />
+                )) ||
+                (searchParams.get("dash") === "driver-update" && (
+                  <DashDriverUpdate />
+                )) ||
+                (searchParams.get("dash") === "driver-delete" && (
+                  <DashDriverDelete />
                 )) ||
                 (searchParams.get("dash") === "vehicle-view" && (
                   <DashVehiclesView />

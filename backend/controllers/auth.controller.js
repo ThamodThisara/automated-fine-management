@@ -49,6 +49,11 @@ export const signup = async (req, res, next) => {
     return next(errorHandler(400, "All fields are required"));
   }
 
+  // Officers may only register drivers; creating officer/admin accounts stays admin-only.
+  if (req.user.role === "officer" && role !== "driver") {
+    return next(errorHandler(403, "Officers may only register driver accounts."));
+  }
+
   // Password strength is validated on the plaintext here, before it is hashed —
   // a schema validator would only ever see the bcrypt hash.
   if (!isValidPassword(password)) {

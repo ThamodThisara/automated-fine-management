@@ -22,6 +22,7 @@ export const DashFineIssue = () => {
   const [selectedRule, setSelectedRule] = useState(null);
   const [driverNic, setDriverNic] = useState(null);
   const [driver, setDriver] = useState(null);
+  const [driverError, setDriverError] = useState(null);
 
   const [formData, setFormData] = useState({
     pId: officer.id,
@@ -43,18 +44,38 @@ export const DashFineIssue = () => {
     // relationship key and their NIC (dNic) for human-readable display.
     if (!driverNic) return;
     const getDriver = async () => {
-      await fetch(`/api/v1/user/getuser/${driverNic}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setDriver(data);
+      try {
+        const res = await fetch(`/api/v1/user/getuser/${driverNic}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          setDriver(null);
+          setDriverError(
+            "Driver not found. Register them under Manage Driver, then try again."
+          );
           setFormData({
             ...formData,
-            driver: data._id,
-            dNic: data.nic,
-            dName: data.name,
-            email: data.email,
+            driver: undefined,
+            dNic: undefined,
+            dName: undefined,
+            email: undefined,
           });
+          return;
+        }
+
+        setDriverError(null);
+        setDriver(data);
+        setFormData({
+          ...formData,
+          driver: data._id,
+          dNic: data.nic,
+          dName: data.name,
+          email: data.email,
         });
+      } catch (error) {
+        console.log(error);
+        setDriverError("Could not verify driver. Please try again.");
+      }
     };
     getDriver();
   }, [driverNic]);
@@ -131,6 +152,12 @@ export const DashFineIssue = () => {
                 </span>
                 Driver Information
               </h3>
+
+              {driverError && (
+                <Alert color="failure" className="mb-4">
+                  <span className="font-medium">{driverError}</span>
+                </Alert>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

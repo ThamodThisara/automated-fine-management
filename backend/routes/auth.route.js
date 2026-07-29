@@ -5,12 +5,14 @@ import { profileUpload } from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Only an authenticated admin may create new accounts.
+// Admins may create any account; officers may register drivers only
+// (enforced in the signup controller, since a role check alone can't
+// distinguish "officer creating a driver" from "officer creating an officer").
 // profileUpload parses the multipart form and stores any profile picture locally.
 router.post(
   "/signup",
   verifyToken,
-  verifyRole("admin"),
+  verifyRole("admin", "officer"),
   profileUpload.single("profilePicture"),
   signup
 );
