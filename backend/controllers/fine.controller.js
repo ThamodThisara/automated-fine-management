@@ -172,7 +172,7 @@ export const fineIssue = async (req, res, next) => {
         </p>
       </div>
       <div class="footer">
-        🚔 Traffic Fine Management System | Contact Us: sadmin@gmail.com
+        🚔 Traffic Fine Management System | Contact Us: thamodthisarabit@gmail.com
       </div>
     </div>
   </body>
