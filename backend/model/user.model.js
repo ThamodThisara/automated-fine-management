@@ -97,5 +97,12 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// NIC only needs to be unique among drivers — officers/admins may share an NIC
+// with a driver (or each other) since they're identified by id/_id instead.
+userSchema.index(
+  { nic: 1 },
+  { unique: true, partialFilterExpression: { role: "driver" } }
+);
+
 const User = mongoose.model("User", userSchema);
 export default User;

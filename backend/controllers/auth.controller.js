@@ -111,10 +111,29 @@ export const signup = async (req, res, next) => {
       if (!vType || !model || vType == "" || model == "") {
         return next(errorHandler(400, "All fields are required"));
       }
+
+      // NIC must be unique among drivers (officers/admins may share one).
+      const existingDriver = await User.findOne({
+        nic: baseUser.nic,
+        role: "driver",
+      });
+      if (existingDriver) {
+        return next(
+          errorHandler(409, "A driver with this NIC is already registered.")
+        );
+      }
+
       const createUser = User({ ...baseUser, vType, model });
       await createUser.save();
       res.json("Signup is successfull");
     } catch (error) {
+      // Safety net for a race between the pre-check and the insert — the
+      // partial unique index on { nic, role: "driver" } still enforces this.
+      if (error.code === 11000 && error.keyPattern?.nic) {
+        return next(
+          errorHandler(409, "A driver with this NIC is already registered.")
+        );
+      }
       next(error);
     }
   }

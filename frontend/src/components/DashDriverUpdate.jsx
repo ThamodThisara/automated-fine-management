@@ -22,6 +22,7 @@ export const DashDriverUpdate = () => {
   const [imageUrl, setImageUrl] = useState(null);
   const [submitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState(null);
+  const [searchError, setSearchError] = useState(null);
 
   // Shows a local preview of the newly-picked image; the file itself is uploaded on submit.
   const handleFileSelect = (e) => {
@@ -59,21 +60,30 @@ export const DashDriverUpdate = () => {
     setSearchId(e.target.value);
   };
 
-  const handleSearchUser = async (req, res) => {
+  const handleSearchUser = async () => {
+    setUser(null);
+    setStatus(null);
+    if (!searchId) {
+      return setSearchError("Enter a driver NIC to search.");
+    }
     try {
       const res = await fetch(`/api/v1/user/getuser/${searchId}`);
+      const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || data.success === false) {
+        setSearchError(data.message || "Driver not found.");
         return;
-      } else {
-        const data = await res.json();
-
-        if (data.role == "driver") {
-          setUser(data);
-        }
       }
+
+      if (data.role !== "driver") {
+        setSearchError("No driver found with this NIC.");
+        return;
+      }
+
+      setSearchError(null);
+      setUser(data);
     } catch (error) {
-      console.log(error);
+      setSearchError("Something went wrong. Please try again.");
     }
   };
 
@@ -174,6 +184,13 @@ export const DashDriverUpdate = () => {
               </Button>
             </div>
           </div>
+          {searchError && (
+            <div className="mt-4">
+              <Alert color="failure">
+                <span className="font-medium">{searchError}</span>
+              </Alert>
+            </div>
+          )}
         </div>
 
         {/* Form Section */}

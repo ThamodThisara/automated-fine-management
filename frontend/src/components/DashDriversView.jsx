@@ -32,13 +32,12 @@ export const DashDriversView = () => {
       }
       const res = await fetch(`/api/v1/user/getuser/${userIdToView}`);
       const data = await res.json();
-      if (data.success == false) {
-        return setError(data.messaage);
+      if (!res.ok || data.success === false) {
+        setUsers([]);
+        return setError(data.message || "Driver not found.");
       }
-      if (res.ok) {
-        setUsers([data]);
-        setError("");
-      }
+      setUsers([data]);
+      setError("");
     } catch (error) {
       setError(error);
     }
