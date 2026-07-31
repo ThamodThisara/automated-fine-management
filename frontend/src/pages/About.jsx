@@ -9,7 +9,7 @@ import {
   LinearScale,
   BarElement,
 } from "chart.js";
-import { Label, Table, TextInput, Spinner, Badge } from "flowbite-react";
+import {Label, Table, TextInput, Spinner, Badge, TableHead} from "flowbite-react";
 import { FiSearch, FiAlertTriangle, FiInfo } from "react-icons/fi";
 import { FaTrafficLight, FaBalanceScale } from "react-icons/fa";
 
@@ -58,6 +58,7 @@ export const About = () => {
       try {
         const response = await fetch("api/v1/fine/getallfine");
         const data = await response.json();
+        console.log("ygyugg",data)
         setFineData(data);
       } catch (error) {
         console.error("Error fetching fines:", error);
@@ -68,9 +69,10 @@ export const About = () => {
 
     fetchFines();
   }, []);
-
+  var violationCounts={}
+  console.log("Vio",violationCounts)
   const processBarData = () => {
-    const violationCounts = {};
+    // violationCounts = {};
     fineData.forEach((fine) => {
       violationCounts[fine.violation] =
         (violationCounts[fine.violation] || 0) + 1;
@@ -347,6 +349,28 @@ export const About = () => {
           </div>
         )}
       </div>
+      {/*<Table hoverable className="min-w-full">*/}
+      {/*  <Table.Head className="bg-gray-50">*/}
+      {/*    <Table.HeadCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">*/}
+      {/*      Violation*/}
+      {/*    </Table.HeadCell>*/}
+      {/*    <Table.HeadCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">*/}
+      {/*      Count*/}
+      {/*    </Table.HeadCell>*/}
+      {/*  </Table.Head>*/}
+      {/*  <Table.Body className="divide-y divide-gray-200">*/}
+      {/*    {Object.entries(violationCounts).map(([key,value]) => (*/}
+      {/*        <Table.Row key={key} className="hover:bg-gray-50">*/}
+      {/*          <Table.Cell className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">*/}
+      {/*            {key}*/}
+      {/*          </Table.Cell>*/}
+      {/*          <Table.Cell className="px-6 py-4 text-gray-700">*/}
+      {/*            {value}*/}
+      {/*          </Table.Cell>*/}
+      {/*        </Table.Row>*/}
+      {/*    ))}*/}
+      {/*  </Table.Body>*/}
+      {/*</Table>*/}
     </div>
   );
 };

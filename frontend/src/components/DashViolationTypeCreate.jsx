@@ -15,13 +15,35 @@ export const DashViolationTypeCreate = () => {
   const { authUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({});
   const [status, setStatus] = useState(null);
+  // const [errors, setErrors] = useState({});
 
   const handleTextboxDataChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+  //
+  // const validate = () => {
+  //   const next = {};
+  //
+  //   if (!formData.type || formData.type.trim().length < 3) {
+  //     next.type = "Violation type must be at least 3 characters.";
+  //   }
+  //
+  //   if (!formData.description || formData.description.trim().length < 10) {
+  //     next.description = "Description is required (at least 10 characters).";
+  //   }
+  //
+  //   const price = Number(formData.price);
+  //   if (!formData.price || Number.isNaN(price) || price <= 0) {
+  //     next.price = "Penalty amount must be a number greater than 0.";
+  //   }
+  //   return next;
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // const found = validate();
+    //   setErrors(found);
+    //   if (Object.keys(found).length > 0) return;
     try {
       const res = await fetch("/api/v1/violation/add", {
         method: "POST",
@@ -49,6 +71,7 @@ export const DashViolationTypeCreate = () => {
       setStatus({ type: "success", message: "Violation rule added successfully." });
       e.target.reset();
       setFormData({});
+      // setErrors({});
     } catch (error) {
       console.log(error);
       setStatus({ type: "failure", message: "Something went wrong. Please try again." });
@@ -93,6 +116,7 @@ export const DashViolationTypeCreate = () => {
                   onChange={handleTextboxDataChange}
                   placeholder="e.g., Speeding, Red Light Violation"
                 />
+                {/*{errors.type && <p className="mt-1 text-xs text-red-600">{errors.type}</p>}*/}
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
                     className="h-5 w-5 text-gray-400"
@@ -125,6 +149,7 @@ export const DashViolationTypeCreate = () => {
                 placeholder="Detailed description of the violation rule..."
                 onChange={handleTextboxDataChange}
               ></textarea>
+              {/*{errors.description && <p className="mt-1 text-xs text-red-600">{errors.description}</p>}*/}
             </div>
 
             {/* Price */}
@@ -147,6 +172,7 @@ export const DashViolationTypeCreate = () => {
                   onChange={handleTextboxDataChange}
                   placeholder="5000"
                 />
+                {/*{errors.price && <p className="mt-1 text-xs text-red-600">{errors.price}</p>}*/}
               </div>
             </div>
 
@@ -173,45 +199,6 @@ export const DashViolationTypeCreate = () => {
               </Button>
             </div>
           </form>
-        </div>
-
-        {/* Sample Rules Preview (optional) */}
-        <div className="mt-8 bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">
-              Common Violation Rules
-            </h3>
-          </div>
-          <div className="divide-y divide-gray-200">
-            <div className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-medium text-red-600">Speeding</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Exceeding posted speed limits by more than 10km/h
-                  </p>
-                </div>
-                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                  Rs. 5000
-                </span>
-              </div>
-            </div>
-            <div className="p-6 hover:bg-gray-50 transition-colors">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="font-medium text-red-600">
-                    Red Light Violation
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Entering intersection after traffic signal has turned red
-                  </p>
-                </div>
-                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                  Rs. 7500
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

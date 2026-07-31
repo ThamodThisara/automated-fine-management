@@ -12,7 +12,7 @@ dotenv.config({ path: path.join(__dirname, "..", ".env") });
 const ADMIN = {
   name: "Admin",
   email: "admin@example.com",
-  password: "admin@123",
+  password: "Admin@123",
   nic: "992322900V",
   dob: new Date("1999-08-19"),
   address: "Kadawatha",
