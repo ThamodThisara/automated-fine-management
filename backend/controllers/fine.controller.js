@@ -796,3 +796,28 @@ export const generateFinePDF = async (req, res, next) => {
   }
 };
 
+// export const getAllFines = async (req, res, next) => {
+//   try {
+//     const page  = parseInt(req.query.page)  || 1;
+//     const limit = parseInt(req.query.limit) || 10;
+//     const skip  = (page - 1) * limit;
+//     const [fines, total] = await Promise.all([
+//       Fine.find().skip(skip).limit(limit),
+//       Fine.countDocuments(),
+//     ]);
+//     res.status(200).json({ page, limit, total, fines });
+//   } catch (error) { next(error); }
+// };
+
+// export const getFineStats = async (req, res, next) => {
+//   try {
+//     const [total, paid, unpaid, blocked] = await Promise.all([
+//       Fine.countDocuments(),
+//       Fine.countDocuments({ state: true }),
+//       Fine.countDocuments({ state: false }),
+//       Fine.countDocuments({ block: true }),
+//     ]);
+//     res.status(200).json({ total, paid, unpaid, blocked });
+//   } catch (error) { next(error); }
+// };
+
