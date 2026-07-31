@@ -151,10 +151,6 @@ export function Header() {
         <Popover content={content} placement="bottom-end">
           <div className="flex cursor-pointer">
             <IoMdNotificationsOutline className="w-6 h-6 text-white" />
-            <div className="relative">
-              {/* <Badge className="justify-center absolute w-3 h-3 p-1 bg-red-400 text-white animate-ping">5</Badge> */}
-              <span className="absolute w-2 h-2 p-1 animate-ping rounded-full bg-red-500 opacity-100"></span>
-            </div>
           </div>
         </Popover>
       </Navbar.Collapse>

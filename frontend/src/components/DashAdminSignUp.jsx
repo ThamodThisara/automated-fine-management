@@ -165,7 +165,7 @@ export default function DashAdminSignUp() {
                   onChange={handlePasswordDataChange}
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Minimum 8 characters with numbers and symbols
+                  Minimum 8 characters with uppercase, lowercase, a number, and a symbol
                 </p>
                 {invalid("password") && (
                   <p className="mt-1 text-xs text-red-600">

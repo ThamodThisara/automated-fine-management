@@ -19,6 +19,6 @@ router.delete("/delete/:_id", verifyToken, verifyRole("admin"), deleteViolation)
 // Authenticated reads (used when issuing fines and browsing rules).
 router.get("/getallrules", verifyToken, getAllRule);
 router.get("/getrule/:_id", verifyToken, getRule);
-router.get("/search", verifyToken, getRuleBySearch);
+router.get("/search", getRuleBySearch);
 
 export default router;
